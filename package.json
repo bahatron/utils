@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "description": "common utilities",
     "main": "lib/index.js",
+    "types": "lib/index.d.ts",
     "scripts": {
         "test": "mocha",
         "build": "rm -rf lib && tsc",

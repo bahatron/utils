@@ -5,3 +5,4 @@ tests/
 tsconfig.json
 .mocharc.js
 .prettierrc
+lib/tsconfig.tsbuildinfo
