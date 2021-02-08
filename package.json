@@ -1,5 +1,5 @@
 {
-    "name": "utils",
+    "name": "@bahatron/utils",
     "version": "0.1.0",
     "description": "common utilities",
     "main": "lib/index.js",
@@ -31,7 +31,6 @@
     },
     "dependencies": {
         "axios": "^0.21.1",
-        "luxon": "^1.25.0",
         "moment": "^2.29.1"
     }
 }
