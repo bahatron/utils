@@ -1,0 +1,7 @@
+.git/
+node_modules/
+src/
+tests/
+tsconfig.json
+.mocharc.js
+.prettierrc
