@@ -1,4 +1,4 @@
-import moment from "moment";
+import { DateTime } from "luxon";
 import { AxiosError } from "axios";
 
 export interface LogEntry {
@@ -81,7 +81,10 @@ export function createLogger({
         id,
         context,
     }: LogEntry) {
-        let _timestamp = moment(timestamp).format("YYYY-MM-DD HH:mm:ss.SSS");
+        let _timestamp = DateTime.fromISO(timestamp).toFormat(
+            "yyyy-LL-dd HH:mm:ss.SSS"
+        );
+
         return `${_timestamp} ${level.padEnd(
             colours ? 16 : 7
         )} ${id} | ${message}${context ? `\n${stringify(context)}` : ""}`;
@@ -89,7 +92,7 @@ export function createLogger({
 
     function log(level: string, message: string, context?: any): LogEntry {
         let payload = {
-            timestamp: moment().toISOString(),
+            timestamp: DateTime.utc().toISO(),
             id,
             message,
             context,
