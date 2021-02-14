@@ -1,48 +1,9 @@
-import { createLogger } from "../src/logger/logger";
+import { Logger } from "../src/logger";
 import { axiosError } from "./fixtures/axios_error";
 
 describe("logger", () => {
-    const _logger = createLogger();
-
-    it("emits and prints debug", async () => {
-        return new Promise((resolve) => {
-            _logger.on("debug", () => {
-                resolve();
-            });
-            _logger.debug("debug", { foo: "bar" });
-        });
-    });
-
-    it("emits and prints info", async () => {
-        return new Promise((resolve) => {
-            _logger.on("info", () => {
-                resolve();
-            });
-            _logger.info("info", { foo: "bar" });
-        });
-    });
-
-    it("emits and prints warning", async () => {
-        return new Promise((resolve) => {
-            _logger.on("warning", () => {
-                resolve();
-            });
-            _logger.warning("warning", { foo: "bar" });
-        });
-    });
-
-    it("emits and prints error", async () => {
-        return new Promise((resolve) => {
-            _logger.on("error", () => {
-                resolve();
-            });
-            _logger.error(axiosError, "error");
-            _logger.error(new Error("normal error"));
-        });
-    });
-
     it("can set logger id", () => {
-        const logger = createLogger({
+        const logger = Logger({
             debug: false,
             id: "my_awesome_id",
             formatter: (params) => {
@@ -58,8 +19,48 @@ describe("logger", () => {
     });
 });
 
+describe("pretty print", () => {
+    const _logger = Logger({ pretty: true });
+
+    it("pretty debug", async () => {
+        return new Promise((resolve) => {
+            _logger.on("debug", () => {
+                resolve();
+            });
+            _logger.debug({ foo: "bar" }, "debug");
+        });
+    });
+
+    it("pretty info", async () => {
+        return new Promise((resolve) => {
+            _logger.on("info", () => {
+                resolve();
+            });
+            _logger.info({ foo: "bar" }, "info");
+        });
+    });
+
+    it("pretty warning", async () => {
+        return new Promise((resolve) => {
+            _logger.on("warning", () => {
+                resolve();
+            });
+            _logger.warning({ foo: "bar" }, "warning");
+        });
+    });
+
+    it("pretty error", async () => {
+        return new Promise((resolve) => {
+            _logger.on("error", () => {
+                resolve();
+            });
+            _logger.error(axiosError, "error");
+        });
+    });
+});
+
 describe("immutable loggers", () => {
-    const _logger = createLogger({
+    const _logger = Logger({
         debug: false,
         id: "immb21",
     });
@@ -99,19 +100,18 @@ describe("immutable loggers", () => {
     });
 });
 
-describe("no colours settings", () => {
-    let _logger = createLogger({ colours: false, id: "[no colours]" });
+describe("no pretty settings", () => {
+    let _logger = Logger({ pretty: false, id: "[no colours]" });
 
     it("does not display colours", () => {
-        _logger.debug("debug no colours");
-        _logger.info("info no colours");
-        _logger.warning("warning no colours");
-        _logger.error(new Error("error no colours"), "error");
+        let payload = [{ rick: "sanchez" }, "hello"] as const;
+
+        _logger.debug(...payload);
     });
 });
 
 describe("error logging", () => {
-    let logger = createLogger({ colours: false, formatter: JSON.stringify });
+    let logger = Logger({ pretty: false, formatter: JSON.stringify });
     it("formats axios error", () => {
         logger.error(axiosError, "axios error test");
     });
