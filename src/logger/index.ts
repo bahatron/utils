@@ -48,7 +48,7 @@ export function Logger(params: CreateLoggerParams = {}): Logger {
         debug = true,
         id: _id = "",
         formatter: _formatter,
-        pretty = true,
+        pretty = false,
     } = params;
 
     return {

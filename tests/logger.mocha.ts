@@ -5,17 +5,17 @@ describe("logger", () => {
     it("can set logger id", () => {
         const logger = Logger({
             debug: false,
+            pretty: false,
             id: "my_awesome_id",
-            formatter: (params) => {
-                return `${params.level} id: ${params.id} - message: ${params.message}`;
-            },
+            formatter: (entry) => JSON.stringify(entry, null, 4),
         });
 
-        logger.info("testing id change");
+        logger.info({ rick: "sanchez" }, "testing id change");
 
         let newLogger = logger.id("my_awesome_changed_id");
 
         newLogger.info("testing id change id changed");
+        newLogger.error(new Error("hi there"));
     });
 });
 
