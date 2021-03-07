@@ -18,7 +18,6 @@ export type LoggerEvent = "debug" | "info" | "warning" | "error";
 
 export interface Logger {
     id(id: string): Logger;
-    formatter(formatter: Formatter): Logger;
     inspect(payload?: any): void;
     on(event: LoggerEvent, handler: Handler<LogEntry>): void;
     debug(payload: any, message?: string): void;
@@ -60,15 +59,6 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 debug,
                 pretty,
                 formatter: _formatter,
-            });
-        },
-
-        formatter(formatter: Formatter) {
-            return Logger({
-                formatter,
-                id: _id,
-                debug,
-                pretty,
             });
         },
 
