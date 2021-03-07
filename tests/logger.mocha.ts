@@ -130,3 +130,64 @@ describe("error logging", () => {
         );
     });
 });
+
+describe("nested context building", () => {
+    it("parses nested object keys into format", () => {
+        let logger = Logger({
+            pretty: true,
+            id: "nested context parsing",
+        });
+
+        logger.info(
+            {
+                err: new Error(),
+                array: ["hello", new Error("error inside array")],
+                banana: "pijama",
+            },
+            "lorem ipsum"
+        );
+
+        logger.warning("no context no problem");
+    });
+});
+
+describe("inspect", () => {
+    it("is pretty cool", () => {
+        let noPretty = Logger({
+            id: "no_pretty_inspect",
+        });
+
+        noPretty.inspect({
+            mode: "no pretty print",
+            foo: "bar",
+            "c-137": [
+                "rick",
+                "morty",
+                {
+                    summer: "sister",
+                    jerry: "dad",
+                    beth: ["sister", "mother", "wife"],
+                },
+            ],
+        });
+
+        let pretty = Logger({
+            pretty: true,
+            id: "pretty_inspect",
+        });
+
+        pretty.inspect({
+            mode: "yes pretty print",
+            foo: "bar",
+            "c-137": [
+                "rick",
+                "morty",
+                {
+                    summer: "sister",
+                    jerry: "dad",
+                    beth: ["sister", "mother", "wife"],
+                },
+            ],
+        });
+    });
+});

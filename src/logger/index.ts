@@ -11,20 +11,20 @@ export interface LogEntry {
 }
 
 export interface Formatter {
-    (payload: LogEntry): string;
+    (payload: LogEntry): string | object | any[];
 }
 
-export type EventType = "debug" | "info" | "warning" | "error";
+export type LoggerEvent = "debug" | "info" | "warning" | "error";
 
 export interface Logger {
     id(id: string): Logger;
     formatter(formatter: Formatter): Logger;
     inspect(payload?: any): void;
-    on(event: EventType, handler: Handler<LogEntry>): void;
-    debug(payload: any, message?: string): Promise<void>;
-    info(payload: any, message?: string): Promise<void>;
-    warning(payload: any, message?: string): Promise<void>;
-    error(error: any, message?: string): Promise<void>;
+    on(event: LoggerEvent, handler: Handler<LogEntry>): void;
+    debug(payload: any, message?: string): void;
+    info(payload: any, message?: string): void;
+    warning(payload: any, message?: string): void;
+    error(error: any, message?: string): void;
 }
 
 export interface CreateLoggerParams {
@@ -43,13 +43,13 @@ export const ERROR_LEVEL = {
 
 const _observable = Observable();
 
-export function Logger(params: CreateLoggerParams = {}): Logger {
+export function Logger(options: CreateLoggerParams = {}): Logger {
     let {
         debug = true,
         id: _id = "",
         formatter: _formatter,
         pretty = false,
-    } = params;
+    } = options;
 
     return {
         on: _observable.on,
@@ -74,7 +74,7 @@ export function Logger(params: CreateLoggerParams = {}): Logger {
 
         inspect(payload) {
             if (typeof payload === "object" || Array.isArray(payload)) {
-                Object.entries(payload).forEach(([key, value]) => {
+                Object.entries(Context(payload)).forEach(([key, value]) => {
                     console.log(`${pretty ? cyan(key) : key}: `, value);
                 });
             } else {
@@ -82,7 +82,7 @@ export function Logger(params: CreateLoggerParams = {}): Logger {
             }
         },
 
-        async debug(payload, message) {
+        debug(payload, message) {
             if (!debug) {
                 return;
             }
@@ -99,7 +99,7 @@ export function Logger(params: CreateLoggerParams = {}): Logger {
             return _observable.emit("debug", entry);
         },
 
-        async info(payload, message) {
+        info(payload, message) {
             let entry = log({
                 pretty,
                 id: _id,
@@ -112,7 +112,7 @@ export function Logger(params: CreateLoggerParams = {}): Logger {
             return _observable.emit("info", entry);
         },
 
-        async warning(payload, message) {
+        warning(payload, message) {
             let entry = log({
                 pretty,
                 id: _id,
@@ -125,7 +125,7 @@ export function Logger(params: CreateLoggerParams = {}): Logger {
             return _observable.emit("warning", entry);
         },
 
-        async error(err, message) {
+        error(err, message) {
             let entry = log({
                 pretty,
                 id: _id,
@@ -145,20 +145,35 @@ export const cyan = (text: string) => `\x1b[96m${text}\x1b[0m`;
 export const orange = (text: string) => `\x1b[33m${text}\x1b[0m`;
 export const red = (text: string) => `\x1b[31m${text}\x1b[0m`;
 
-function defaultFormatter({
-    timestamp,
-    message,
-    level,
-    id,
-    context,
-}: LogEntry) {
+function prettyFormatter({ timestamp, message, level, id, context }: LogEntry) {
     let _timestamp = DateTime.fromISO(timestamp).toFormat(
         "yyyy-LL-dd HH:mm:ss.SSS"
     );
 
-    return `${_timestamp} ${level} ${id} ${message ? ` | ${message}\n` : ``}${
-        context ? `${$json.stringify(context)}` : ""
-    }`;
+    function _level() {
+        switch (level) {
+            case ERROR_LEVEL.DEBUG:
+                return cyan(level);
+            case ERROR_LEVEL.INFO:
+                return green(level);
+            case ERROR_LEVEL.WARNING:
+                return orange(level);
+            case ERROR_LEVEL.ERROR:
+                return red(level);
+            default:
+                return level;
+        }
+    }
+
+    function _message(): string {
+        return message ? ` | ${message}` : ``;
+    }
+
+    function _context() {
+        return context ? `\n${$json.stringify(context, null, 4)}` : ``;
+    }
+
+    return `${_timestamp} ${_level()} ${id} ${_message()} ${_context()}`;
 }
 
 function log(params: {
@@ -169,11 +184,7 @@ function log(params: {
     context?: any;
     formatter?: Formatter;
 }): LogEntry {
-    let { id, message, context, level, pretty } = params;
-
-    let formatter = pretty
-        ? defaultFormatter
-        : params.formatter ?? defaultFormatter;
+    let { id, message, context, level, pretty, formatter } = params;
 
     let payload = {
         timestamp: DateTime.utc().toISO(),
@@ -183,30 +194,43 @@ function log(params: {
         level,
     };
 
-    console.log(formatter(payload));
+    console.log(
+        pretty ? prettyFormatter(payload) : formatter?.(payload) ?? payload
+    );
 
     return payload;
 }
 
-function Context(err: any) {
-    if (err?.isAxiosError) {
+function Context(payload: any): any {
+    if (payload?.isAxiosError) {
         return {
             req_config: {
-                url: err.config?.url,
-                method: err.config?.method,
-                headers: err.config?.headers,
-                params: err.config?.params,
-                data: err.config?.data,
+                url: payload.config?.url,
+                method: payload.config?.method,
+                headers: payload.config?.headers,
+                params: payload.config?.params,
+                data: payload.config?.data,
             },
-            res_status: err.response?.status,
-            res_data: err.response?.data,
+            res_status: payload.response?.status,
+            res_data: payload.response?.data,
         };
-    } else if (err instanceof Error) {
+    } else if (payload instanceof Error) {
         return {
-            ...err,
-            stack: err?.stack?.split(`\n`).map((entry) => entry.trim()),
+            ...payload,
+            stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
         };
+    } else if (Array.isArray(payload)) {
+        return payload.map(Context);
+    } else if (["object"].includes(typeof payload)) {
+        return Object.entries(payload as {} | any[]).reduce(
+            (aggregate, [key, value]) => {
+                aggregate[key] = Context(value);
+
+                return aggregate;
+            },
+            {} as Record<string | number, any>
+        );
     } else {
-        return err;
+        return payload;
     }
 }
