@@ -211,7 +211,7 @@ function Context(payload: any): any {
         };
     } else if (Array.isArray(payload)) {
         return payload.map(Context);
-    } else if (["object"].includes(typeof payload)) {
+    } else if (["object"].includes(typeof payload) && Boolean(payload)) {
         return Object.entries(payload as {} | any[]).reduce(
             (aggregate, [key, value]) => {
                 aggregate[key] = Context(value);

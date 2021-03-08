@@ -131,26 +131,6 @@ describe("error logging", () => {
     });
 });
 
-describe("nested context building", () => {
-    it("parses nested object keys into format", () => {
-        let logger = Logger({
-            pretty: true,
-            id: "nested context parsing",
-        });
-
-        logger.info(
-            {
-                err: new Error(),
-                array: ["hello", new Error("error inside array")],
-                banana: "pijama",
-            },
-            "lorem ipsum"
-        );
-
-        logger.warning("no context no problem");
-    });
-});
-
 describe("inspect", () => {
     it("is pretty cool", () => {
         let noPretty = Logger({
@@ -189,5 +169,27 @@ describe("inspect", () => {
                 },
             ],
         });
+    });
+});
+
+describe("nested context building", () => {
+    it("parses nested object keys into format", () => {
+        let logger = Logger({
+            pretty: true,
+            id: "nested context parsing",
+        });
+
+        logger.info(
+            {
+                err: new Error(),
+                array: ["hello", new Error("error inside array")],
+                banana: "pijama",
+                nulleo: null,
+                undefo: undefined,
+            },
+            "lorem ipsum"
+        );
+
+        logger.warning("no context no problem");
     });
 });
