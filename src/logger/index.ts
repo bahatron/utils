@@ -167,7 +167,7 @@ function prettyFormatter({ timestamp, message, level, id, context }: LogEntry) {
 }
 
 function log(params: {
-    id: string;
+    id: string | (() => string);
     pretty: boolean;
     level: string;
     message?: string;
@@ -178,7 +178,7 @@ function log(params: {
 
     let payload = {
         timestamp: DateTime.utc().toISO(),
-        id,
+        id: typeof id === "string" ? id : id(),
         message: typeof context === "string" ? context : message,
         context: ["string"].includes(typeof context) ? undefined : context,
         level,
