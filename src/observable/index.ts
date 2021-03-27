@@ -12,12 +12,10 @@ export function Observable<T = any>() {
     }
 
     let observer = {
-        async emit(event: string, payload: T): Promise<void> {
-            await Promise.all(
-                Array.from(getHandler(event)).map((handler) => {
-                    return handler(payload);
-                })
-            );
+        emit(event: string, payload: T): void {
+            Array.from(getHandler(event)).map((handler) => {
+                return handler(payload);
+            });
         },
 
         on(event: string, handler: Handler<T>): void {
@@ -28,7 +26,7 @@ export function Observable<T = any>() {
             getHandler(event).add(handler);
         },
 
-        once(event: string, handler: Handler<T>) {
+        once(event: string, handler: Handler<T>): void {
             let onTrigger: Handler<T> = async (payload) => {
                 await handler(payload);
 
