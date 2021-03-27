@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { $json } from "..";
+import { stringify } from "../json";
 import { Handler, Observable } from "../observable";
 
 export interface LogEntry {
@@ -28,7 +28,7 @@ export interface Logger {
 
 export interface CreateLoggerParams {
     debug?: boolean;
-    id?: string;
+    id?: string | (() => string);
     formatter?: Formatter;
     pretty?: boolean;
 }
@@ -53,7 +53,7 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
     return {
         on: _observable.on,
 
-        id(id: string) {
+        id(id: CreateLoggerParams["id"]) {
             return Logger({
                 id,
                 debug,
@@ -77,7 +77,7 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 return;
             }
 
-            let entry = log({
+            let entry = _log({
                 pretty,
                 id: _id,
                 level: ERROR_LEVEL.DEBUG,
@@ -86,11 +86,11 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 formatter: _formatter,
             });
 
-            return _observable.emit("debug", entry);
+            _observable.emit("debug", entry);
         },
 
         info(payload, message) {
-            let entry = log({
+            let entry = _log({
                 pretty,
                 id: _id,
                 level: ERROR_LEVEL.INFO,
@@ -99,11 +99,11 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 formatter: _formatter,
             });
 
-            return _observable.emit("info", entry);
+            _observable.emit("info", entry);
         },
 
         warning(payload, message) {
-            let entry = log({
+            let entry = _log({
                 pretty,
                 id: _id,
                 level: ERROR_LEVEL.WARNING,
@@ -112,11 +112,11 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 formatter: _formatter,
             });
 
-            return _observable.emit("warning", entry);
+            _observable.emit("warning", entry);
         },
 
         error(err, message) {
-            let entry = log({
+            let entry = _log({
                 pretty,
                 id: _id,
                 level: ERROR_LEVEL.ERROR,
@@ -125,7 +125,7 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 formatter: _formatter,
             });
 
-            return _observable.emit("error", entry);
+            _observable.emit("error", entry);
         },
     };
 }
@@ -160,13 +160,13 @@ function prettyFormatter({ timestamp, message, level, id, context }: LogEntry) {
     }
 
     function _context() {
-        return context ? `\n${$json.stringify(context, null, 4)}` : ``;
+        return context ? `\n${stringify(context, null, 4)}` : ``;
     }
 
     return `${_timestamp} ${_level()} ${id} ${_message()} ${_context()}`;
 }
 
-function log(params: {
+function _log(params: {
     id: string | (() => string);
     pretty: boolean;
     level: string;
