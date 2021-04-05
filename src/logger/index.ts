@@ -177,7 +177,7 @@ function _log(params: {
     let { id, message, context, level, pretty, formatter } = params;
 
     let payload = {
-        timestamp: DateTime.utc().toISO(),
+        timestamp: `${DateTime.utc().toISO()}`,
         id: typeof id === "string" ? id : id(),
         message: typeof context === "string" ? context : message,
         context: ["string"].includes(typeof context) ? undefined : context,
@@ -191,7 +191,7 @@ function _log(params: {
     return payload;
 }
 
-function Context(payload: any): any {
+function Context(payload: any): Record<string, any> {
     if (payload?.isAxiosError) {
         return {
             req_config: {
@@ -212,7 +212,7 @@ function Context(payload: any): any {
     } else if (Array.isArray(payload)) {
         return payload.map(Context);
     } else if (["object"].includes(typeof payload) && Boolean(payload)) {
-        return Object.entries(payload as {} | any[]).reduce(
+        return Object.entries(payload as object).reduce(
             (aggregate, [key, value]) => {
                 aggregate[key] = Context(value);
 
@@ -221,6 +221,6 @@ function Context(payload: any): any {
             {} as Record<string | number, any>
         );
     } else {
-        return payload;
+        return payload?.toString() ?? null;
     }
 }
