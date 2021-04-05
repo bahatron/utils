@@ -120,7 +120,7 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 pretty,
                 id: _id,
                 level: ERROR_LEVEL.ERROR,
-                message,
+                message: message ?? err?.message,
                 context: Context(err),
                 formatter: _formatter,
             });
@@ -179,8 +179,11 @@ function _log(params: {
     let payload = {
         timestamp: `${DateTime.utc().toISO()}`,
         id: typeof id === "string" ? id : id(),
-        message: typeof context === "string" ? context : message,
-        context: ["string"].includes(typeof context) ? undefined : context,
+        message:
+            typeof context === "string" && !Boolean(message)
+                ? context
+                : message,
+        context: typeof context !== "string" ? context : undefined,
         level,
     };
 
