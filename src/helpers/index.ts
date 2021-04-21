@@ -1,11 +1,11 @@
-export async function parallelize({
+export async function parallelize<T = any>({
     queue,
     handler,
-    workers = 5,
+    workers,
 }: {
-    queue: any[];
-    handler: (val: any) => void;
-    workers?: number;
+    queue: T[];
+    handler: (val: T) => void;
+    workers: number;
 }) {
     let _queue = Array.from(queue);
 
