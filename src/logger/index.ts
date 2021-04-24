@@ -224,3 +224,5 @@ function Context(payload: any): Record<string, any> {
         return payload?.toString() ?? null;
     }
 }
+
+export default Logger();

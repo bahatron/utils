@@ -1,3 +1,5 @@
+import logger from "../logger";
+
 export async function parallelize<T = any>({
     queue,
     handler,
@@ -20,4 +22,13 @@ export async function parallelize<T = any>({
                 }
             })
     );
+}
+
+export function execute(handler: () => void) {
+    Promise.resolve(handler())
+        .then(() => process.exit())
+        .catch((err) => {
+            logger.error(err);
+            process.exit(1);
+        });
 }
