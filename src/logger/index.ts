@@ -178,7 +178,7 @@ function _log(params: {
 
     let payload = {
         timestamp: `${DateTime.utc().toISO()}`,
-        id: typeof id === "string" ? id : id(),
+        id: typeof id == "function" ? id() : id,
         message: typeof context === "string" && !message ? context : message,
         context: typeof context !== "string" ? context : undefined,
         level,
