@@ -3,6 +3,7 @@ node_modules/
 src/
 tests/
 tsconfig*.json
+example/
 .mocharc.js
 .prettierrc
 lib/tsconfig.tsbuildinfo
