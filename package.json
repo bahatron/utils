@@ -6,7 +6,7 @@
     "types": "lib/index.d.ts",
     "scripts": {
         "test": "mocha",
-        "watch": "tsc -b -w",
+        "watch": "tsc -b -w tsconfig.build.json",
         "build": "rm -rf lib && tsc -p tsconfig.build.json",
         "prepublishOnly": "npm run build && npm run test",
         "preversion": "npm run prepublishOnly"

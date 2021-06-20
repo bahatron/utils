@@ -4,9 +4,9 @@ export function stringify(value: any, replacer = null, space?: number): string {
         : value?.toString();
 }
 
-export function parse(payload: any): object | any[] | undefined {
+export function parse<T = any>(payload: any): T | T[] | undefined {
     try {
-        return JSON.parse(payload);
+        return typeof payload === "string" ? JSON.parse(payload) : payload;
     } catch (err) {
         return undefined;
     }
