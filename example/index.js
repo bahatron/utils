@@ -1,73 +1,77 @@
-const { Logger } = require("../lib/logger/index");
-// import { Logger } from "../lib/logger";
+const { Logger } = require("../lib/logger");
 const pino = require("pino");
 const cheerio = require("cheerio");
 const moment = require("moment");
 const { stringify } = require("../lib/json/index");
 const { default: axios } = require("axios");
+const fastStringify = require("fast-safe-stringify");
+const { argv: yargs } = require("yargs");
 
 const pinoLogger = pino({
+    name: "testy",
     formatters: {
-        log: (log) => {
-            console.log({ log });
-            return log;
-        },
+        level: (label) => ({
+            level: label,
+        }),
     },
+    timestamp: pino.stdTimeFunctions.isoTime,
 });
 
-pinoLogger.info({ msg: "sanchez" }, `pino says hi`);
-const logger = Logger({
-    pretty: false,
-    // formatter: stringify,
+const bhtLogger = Logger({
+    pretty: true,
+    id: () => "testy",
 });
 
-let _parsed = cheerio.load(require("./fixture"));
+function axiosError() {
+    axios({
+        url: "/err",
+        method: "POST",
+        data: {
+            rick: "c-137",
+        },
+    }).catch(bhtLogger.error);
+}
 
-let _html = _parsed(".tmJOVKTrHAB4bLpcMjzQ");
+function pinoLoggerBench() {
+    let startPino = moment();
+    for (let i = 0; i < 1000000; i++) {
+        pinoLogger.info({ rick: "c-137" }, "hello");
+    }
+    let result = moment().diff(startPino, "milliseconds", true);
 
-// console.log(Object.entries(_html));
-// console.log(`=`.repeat(100));
-// console.log(
-//     JSON.stringify(_html, function replacer(key, value) {
-//         console.log({
-//             this: this,
-//             value,
-//             key,
-//             isTheSame: value === this,
-//             hasValueOwnProp: this.hasOwnProp(value),
-//             hasKeyOwnProp: this.hasOwnProp(key),
-//         });
-//         return value;
-//     })
-// );
+    console.log(result);
+}
 
-axios({
-    url: "/err",
-    method: "POST",
-}).catch((err) => pinoLogger.error(err));
+function bhtLoggerBench() {
+    let startBht = moment();
+    for (let i = 0; i < 1000000; i++) {
+        bhtLogger.info({ rick: "c-137" }, "hello");
+    }
 
-axios({
-    url: "/err",
-    method: "POST",
-}).catch(logger.error);
+    let result = moment().diff(startBht, "milliseconds", true);
 
-// pinoLogger.info(_html);
+    console.log(result);
+}
 
-// let startPino = moment();
-// for (let i = 0; i < 1000000; i++) {
-//     pinoLogger.info("hello");
-// }
+function recursiveTest() {
+    let _parsed = cheerio.load(require("./fixture"));
 
-// let pinoLap = moment().diff(startPino, "milliseconds", true);
+    let _html = _parsed(".tmJOVKTrHAB4bLpcMjzQ");
 
-// let startBht = moment();
-// for (let i = 0; i < 1000000; i++) {
-//     logger.info("hello");
-// }
+    bhtLogger.info(_html);
+    pinoLogger.info(_html);
+}
 
-// let bhtLap = moment().diff(startBht, "milliseconds", true);
-
-// console.log({
-//     pino: pinoLap,
-//     bht: bhtLap,
-// });
+if (yargs.bhtBench) {
+    bhtLoggerBench();
+} else if (yargs.pinoBench) {
+    pinoLoggerBench();
+} else if (yargs.axiosError) {
+    axiosError();
+} else if (yargs.recursiveTest) {
+    recursiveTest();
+} else {
+    console.error(
+        `Valid params: bhtBench | pinoBench | axiosError | recursiveTest`
+    );
+}

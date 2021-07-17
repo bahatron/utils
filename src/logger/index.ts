@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import { stringify } from "../json";
 import { Handler, Observable } from "../observable";
 
@@ -11,7 +10,7 @@ export interface LogEntry {
 }
 
 export interface Formatter {
-    (payload: LogEntry): string | object | any[];
+    (payload: LogEntry): any;
 }
 
 export type LoggerEvent = "debug" | "info" | "warning" | "error";
@@ -46,9 +45,33 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
     let {
         debug = true,
         id: _id = "",
-        formatter: _formatter,
+        formatter = stringify,
         pretty = false,
     } = options;
+
+    let _formatter = pretty ? prettyFormatter : formatter;
+
+    function _log(params: {
+        id: string | (() => string);
+        level: string;
+        message?: string;
+        context?: any;
+    }): LogEntry {
+        let { id, message, context, level } = params;
+
+        let entry = {
+            timestamp: new Date().toISOString(),
+            id: typeof id == "function" ? id() : id,
+            message:
+                typeof context === "string" && !message ? context : message,
+            context: typeof context !== "string" ? context : undefined,
+            level,
+        };
+
+        process.stdout.write(`${_formatter(entry)}\n`);
+
+        return entry;
+    }
 
     return {
         on: _observable.on,
@@ -58,7 +81,7 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
                 id,
                 debug,
                 pretty,
-                formatter: _formatter,
+                formatter,
             });
         },
 
@@ -78,12 +101,10 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
             }
 
             let entry = _log({
-                pretty,
                 id: _id,
                 level: ERROR_LEVEL.DEBUG,
                 message,
                 context: Context(payload),
-                formatter: _formatter,
             });
 
             _observable.emit("debug", entry);
@@ -91,12 +112,10 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
 
         info(payload, message) {
             let entry = _log({
-                pretty,
                 id: _id,
                 level: ERROR_LEVEL.INFO,
                 message,
                 context: Context(payload),
-                formatter: _formatter,
             });
 
             _observable.emit("info", entry);
@@ -104,12 +123,10 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
 
         warning(payload, message) {
             let entry = _log({
-                pretty,
                 id: _id,
                 level: ERROR_LEVEL.WARNING,
                 message,
                 context: Context(payload),
-                formatter: _formatter,
             });
 
             _observable.emit("warning", entry);
@@ -117,12 +134,10 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
 
         error(err, message) {
             let entry = _log({
-                pretty,
                 id: _id,
                 level: ERROR_LEVEL.ERROR,
                 message: message ?? err?.message,
                 context: Context(err),
-                formatter: _formatter,
             });
 
             _observable.emit("error", entry);
@@ -136,10 +151,6 @@ export const orange = (text: string) => `\x1b[33m${text}\x1b[0m`;
 export const red = (text: string) => `\x1b[31m${text}\x1b[0m`;
 
 function prettyFormatter({ timestamp, message, level, id, context }: LogEntry) {
-    let _timestamp = DateTime.fromISO(timestamp).toFormat(
-        "yyyy-LL-dd HH:mm:ss.SSS"
-    );
-
     function _level() {
         switch (level) {
             case ERROR_LEVEL.DEBUG:
@@ -160,69 +171,54 @@ function prettyFormatter({ timestamp, message, level, id, context }: LogEntry) {
     }
 
     function _context() {
-        return context ? `\n${stringify(context, null, 4)}` : ``;
+        return context ? `\n${stringify(context, undefined, 4)}` : ``;
     }
 
-    return `${_timestamp} ${_level()} ${id} ${_message()} ${_context()}`;
+    return `${timestamp} ${_level()} ${id} ${_message()} ${_context()}`;
 }
 
-function _log(params: {
-    id: string | (() => string);
-    pretty: boolean;
-    level: string;
-    message?: string;
-    context?: any;
-    formatter?: Formatter;
-}): LogEntry {
-    let { id, message, context, level, pretty, formatter } = params;
+function Context(payload: any) {
+    let weakSet = new WeakSet();
 
-    let payload = {
-        timestamp: `${DateTime.utc().toISO()}`,
-        id: typeof id == "function" ? id() : id,
-        message: typeof context === "string" && !message ? context : message,
-        context: typeof context !== "string" ? context : undefined,
-        level,
-    };
+    function recursiveReduce(payload: any): any {
+        if (payload?.isAxiosError) {
+            return {
+                req: {
+                    headers: payload.config?.headers,
+                    url: payload.config?.url,
+                    method: payload.config?.method,
+                    params: payload.config?.params,
+                    data: payload.config?.data,
+                },
+                res: {
+                    status: payload.response?.status,
+                    data: payload.response?.data,
+                },
+            };
+        } else if (payload instanceof Error) {
+            return {
+                ...payload,
+                stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
+            };
+        } else if (Array.isArray(payload)) {
+            return payload.map(recursiveReduce);
+        } else if (["object"].includes(typeof payload) && Boolean(payload)) {
+            if (weakSet.has(payload)) {
+                return `[Reference]`;
+            }
 
-    console.log(
-        pretty ? prettyFormatter(payload) : formatter?.(payload) ?? payload
-    );
-
-    return payload;
-}
-
-function Context(payload: any): Record<string, any> {
-    if (payload?.isAxiosError) {
-        return {
-            req_config: {
-                url: payload.config?.url,
-                method: payload.config?.method,
-                headers: payload.config?.headers,
-                params: payload.config?.params,
-                data: payload.config?.data,
-            },
-            res_status: payload.response?.status,
-            res_data: payload.response?.data,
-        };
-    } else if (payload instanceof Error) {
-        return {
-            ...payload,
-            stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
-        };
-    } else if (Array.isArray(payload)) {
-        return payload.map(Context);
-    } else if (["object"].includes(typeof payload) && Boolean(payload)) {
-        return Object.entries(payload as object).reduce(
-            (aggregate, [key, value]) => {
-                aggregate[key] = Context(value);
+            weakSet.add(payload);
+            return Object.entries(payload).reduce((aggregate, [key, value]) => {
+                aggregate[key] = recursiveReduce(value);
 
                 return aggregate;
-            },
-            {} as Record<string | number, any>
-        );
-    } else {
-        return payload?.toString() ?? null;
+            }, {} as Record<string | number, any>);
+        } else if (typeof payload === "function") {
+            return `[Function]`;
+        } else {
+            return payload?.toString() ?? null;
+        }
     }
-}
 
-export default Logger();
+    return recursiveReduce(payload);
+}
