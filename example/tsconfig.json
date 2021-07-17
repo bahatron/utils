@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "noImplicitAny": false,
+        "allowJs": true
+    },
+    "exclude": [
+        "node_modules",
+        "lib"
+    ]
+}

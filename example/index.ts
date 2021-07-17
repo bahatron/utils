@@ -18,8 +18,8 @@ const pinoLogger = pino({
 });
 
 const bhtLogger = Logger({
-    pretty: true,
-    id: () => "testy",
+    // pretty: true,
+    // id: () => "testy",
 });
 
 function axiosError() {
@@ -29,7 +29,12 @@ function axiosError() {
         data: {
             rick: "c-137",
         },
-    }).catch(bhtLogger.error);
+    }).catch((err) => {
+        separator("bht logger");
+        bhtLogger.error(err);
+        separator("pino logger");
+        pinoLogger.error(err);
+    });
 }
 
 function pinoLoggerBench() {
@@ -58,8 +63,16 @@ function recursiveTest() {
 
     let _html = _parsed(".tmJOVKTrHAB4bLpcMjzQ");
 
+    separator("bht logger");
     bhtLogger.info(_html);
+    separator("pino logger");
     pinoLogger.info(_html);
+}
+
+function separator(msg) {
+    console.log(`=`.repeat(80));
+    console.log(msg);
+    console.log(`=`.repeat(80));
 }
 
 if (yargs.bhtBench) {

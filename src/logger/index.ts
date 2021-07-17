@@ -44,7 +44,7 @@ const _observable = Observable();
 export function Logger(options: CreateLoggerParams = {}): Logger {
     let {
         debug = true,
-        id: _id = "",
+        id: _id,
         formatter = stringify,
         pretty = false,
     } = options;
@@ -52,7 +52,7 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
     let _formatter = pretty ? prettyFormatter : formatter;
 
     function _log(params: {
-        id: string | (() => string);
+        id?: string | (() => string);
         level: string;
         message?: string;
         context?: any;
@@ -68,7 +68,13 @@ export function Logger(options: CreateLoggerParams = {}): Logger {
             level,
         };
 
-        process.stdout.write(`${_formatter(entry)}\n`);
+        let print = _formatter(entry);
+
+        try {
+            process.stdout.write(`${print}\n`);
+        } catch (err) {
+            console.log(print);
+        }
 
         return entry;
     }
@@ -222,3 +228,5 @@ function Context(payload: any) {
 
     return recursiveReduce(payload);
 }
+
+export default Logger();
