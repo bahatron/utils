@@ -1,10 +1,8 @@
-const { Logger } = require("../lib/logger");
-const pino = require("pino");
-const cheerio = require("cheerio");
-const moment = require("moment");
-const { stringify } = require("../lib/json/index");
-const { default: axios } = require("axios");
-const fastStringify = require("fast-safe-stringify");
+import { Logger } from "../lib/logger";
+import axios from "axios";
+import pino from "pino";
+import cheerio from "cheerio";
+
 const { argv: yargs } = require("yargs");
 
 const pinoLogger = pino({
@@ -20,6 +18,8 @@ const pinoLogger = pino({
 const bhtLogger = Logger({
     // pretty: true,
     // id: () => "testy",
+    id: "testy",
+    // timestamp: () => new Date().valueOf(),
 });
 
 function axiosError() {
@@ -38,24 +38,24 @@ function axiosError() {
 }
 
 function pinoLoggerBench() {
-    let startPino = moment();
+    let start = new Date();
     for (let i = 0; i < 1000000; i++) {
         pinoLogger.info({ rick: "c-137" }, "hello");
     }
-    let result = moment().diff(startPino, "milliseconds", true);
+    let end = new Date().valueOf() - start.valueOf();
 
-    console.log(result);
+    console.log(end);
 }
 
 function bhtLoggerBench() {
-    let startBht = moment();
+    let start = new Date();
     for (let i = 0; i < 1000000; i++) {
         bhtLogger.info({ rick: "c-137" }, "hello");
     }
 
-    let result = moment().diff(startBht, "milliseconds", true);
+    let end = new Date().valueOf() - start.valueOf();
 
-    console.log(result);
+    console.log(end);
 }
 
 function recursiveTest() {
@@ -75,16 +75,14 @@ function separator(msg) {
     console.log(`=`.repeat(80));
 }
 
-if (yargs.bhtBench) {
+if (yargs.bht) {
     bhtLoggerBench();
-} else if (yargs.pinoBench) {
+} else if (yargs.pino) {
     pinoLoggerBench();
 } else if (yargs.axiosError) {
     axiosError();
 } else if (yargs.recursiveTest) {
     recursiveTest();
 } else {
-    console.error(
-        `Valid params: bhtBench | pinoBench | axiosError | recursiveTest`
-    );
+    console.error(`Valid params: bht | pino | axiosError | recursiveTest`);
 }

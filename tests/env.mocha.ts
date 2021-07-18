@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { getenv } from "../src/env";
+import { getenv } from "../src/helpers/env";
 
-describe("get", () => {
+describe("getenv", () => {
     it("given 0, it'll return string '0'", () => {
         process.env.var = "0";
         (<any>process.env).bar = 0;

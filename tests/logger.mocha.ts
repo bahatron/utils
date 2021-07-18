@@ -1,23 +1,18 @@
 import { Logger } from "../src/logger";
 import { axiosError } from "./fixtures/axios_error";
 
-describe("logger", () => {
-    it("can set logger id", () => {
-        const logger = Logger({
-            debug: false,
-            pretty: false,
-            id: "my_awesome_id",
-            formatter: (entry) => JSON.stringify(entry, null, 4),
-        });
-
-        logger.info({ rick: "sanchez" }, "testing id change");
-
-        let newLogger = logger.id("my_awesome_changed_id");
-
-        newLogger.info("testing id change id changed");
-        newLogger.error(new Error("hi there"));
-    });
-});
+const LOGGER_TEST_PAYLOAD = {
+    foo: "bar",
+    "c-137": [
+        "rick",
+        "morty",
+        {
+            summer: "sister",
+            jerry: "dad",
+            beth: ["mother", "clone"],
+        },
+    ],
+};
 
 describe("pretty print", () => {
     const _logger = Logger({ pretty: true });
@@ -59,47 +54,6 @@ describe("pretty print", () => {
     });
 });
 
-describe("immutable loggers", () => {
-    const _logger = Logger({
-        debug: false,
-        id: "immb21",
-    });
-
-    it("calls all event handlers attached from any event", async () => {
-        return new Promise(async (resolve) => {
-            const loggerA = _logger.id("loggerA");
-            const loggerB = _logger.id("loggerB");
-            const loggerC = _logger.id("loggerC");
-
-            Promise.all(
-                [loggerA, loggerB, loggerC, _logger].map(
-                    (logger) =>
-                        new Promise(async (resolve) => {
-                            let levels = ["info", "warning", "error"] as const;
-
-                            resolve(
-                                await Promise.all(
-                                    levels.map(
-                                        (level) =>
-                                            new Promise(async (_resolve) => {
-                                                logger.on(level, (event) => {
-                                                    _resolve(event);
-                                                });
-                                            })
-                                    )
-                                )
-                            );
-                        })
-                )
-            ).then(<any>resolve);
-
-            loggerA.info("info");
-            loggerB.warning("warning");
-            loggerC.error(new Error("123"), "error");
-        });
-    });
-});
-
 describe("no pretty settings", () => {
     let _logger = Logger({ pretty: false, id: "[no colours]" });
 
@@ -132,25 +86,18 @@ describe("error logging", () => {
 });
 
 describe("inspect", () => {
-    it("is pretty cool", () => {
+    it("no pretty", () => {
         let noPretty = Logger({
             id: "no_pretty_inspect",
         });
 
         noPretty.inspect({
             mode: "no pretty print",
-            foo: "bar",
-            "c-137": [
-                "rick",
-                "morty",
-                {
-                    summer: "sister",
-                    jerry: "dad",
-                    beth: ["sister", "mother", "wife"],
-                },
-            ],
+            ...LOGGER_TEST_PAYLOAD,
         });
+    });
 
+    it("pretty", () => {
         let pretty = Logger({
             pretty: true,
             id: "pretty_inspect",
@@ -158,16 +105,7 @@ describe("inspect", () => {
 
         pretty.inspect({
             mode: "yes pretty print",
-            foo: "bar",
-            "c-137": [
-                "rick",
-                "morty",
-                {
-                    summer: "sister",
-                    jerry: "dad",
-                    beth: ["sister", "mother", "wife"],
-                },
-            ],
+            ...LOGGER_TEST_PAYLOAD,
         });
     });
 });
@@ -179,16 +117,25 @@ describe("nested context building", () => {
             id: "nested context parsing",
         });
 
+        function funcWithName() {
+            return `this is a function`;
+        }
+
         logger.info(
             {
+                ...LOGGER_TEST_PAYLOAD,
                 err: new Error(),
                 array: ["hello", new Error("error inside array")],
                 banana: "pijama",
                 nulleo: null,
                 undefo: undefined,
+                func: () => `this is a function`,
+                funcWithName,
             },
             "lorem ipsum"
         );
+
+        logger.info(funcWithName, "nameo");
 
         logger.warning("no context no problem");
     });

@@ -4,7 +4,7 @@ export class Exception extends Error {
     constructor(
         public readonly name: string,
         public readonly message: string,
-        public readonly httpCode: number,
+        public readonly code: number,
         public readonly context: Context = {}
     ) {
         super();

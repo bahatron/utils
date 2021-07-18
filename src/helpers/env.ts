@@ -1,3 +1,5 @@
+import { Exception } from "../error";
+
 export function getenv(key: string, defaultValue?: string): string {
     const value = process.env[key];
 
@@ -9,5 +11,5 @@ export function getenv(key: string, defaultValue?: string): string {
         return defaultValue;
     }
 
-    throw new Error(`${key} is not set in environment`);
+    throw new Exception(`EnvNotSet`, `${key} is not set in environment`, 503);
 }
