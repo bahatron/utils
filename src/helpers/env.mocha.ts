@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { getenv } from "../src/helpers/env";
+import { getenv } from "./env";
 
 describe("getenv", () => {
     it("given 0, it'll return string '0'", () => {

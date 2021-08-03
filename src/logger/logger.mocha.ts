@@ -1,5 +1,5 @@
-import { Logger } from "../src/logger";
-import { axiosError } from "./fixtures/axios_error";
+import { Logger } from ".";
+import { axiosError } from "../../tests/fixtures/axios_error";
 
 const LOGGER_TEST_PAYLOAD = {
     foo: "bar",
@@ -31,7 +31,7 @@ describe("pretty print", () => {
             _logger.on("info", () => {
                 resolve();
             });
-            _logger.info({ foo: "bar" }, "info");
+            _logger.info(function doSomething() {}, "info");
         });
     });
 
@@ -40,7 +40,7 @@ describe("pretty print", () => {
             _logger.on("warning", () => {
                 resolve();
             });
-            _logger.warning({ foo: "bar" }, "warning");
+            _logger.warning(["rick", "sanchez", "c-137"], "warning");
         });
     });
 

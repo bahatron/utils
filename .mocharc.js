@@ -1,6 +1,6 @@
 require("ts-node").register();
 
 module.exports = {
-    spec: "tests/**/*.mocha.ts",
+    spec: "**/*.mocha.ts",
     timeout: 5000,
 };

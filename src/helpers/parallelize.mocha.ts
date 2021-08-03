@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { parallelize } from "../src/helpers";
+import { parallelize } from ".";
 
 describe("parallelize", () => {
     it("does not modify the array given as queue", async () => {
