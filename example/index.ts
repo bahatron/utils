@@ -1,4 +1,4 @@
-import { Logger } from "../lib/logger";
+import { Logger } from "@bahatron/utils";
 import axios from "axios";
 import pino from "pino";
 import cheerio from "cheerio";

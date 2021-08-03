@@ -1,5 +1,4 @@
 import { Logger } from ".";
-import { axiosError } from "../../tests/fixtures/axios_error";
 
 const LOGGER_TEST_PAYLOAD = {
     foo: "bar",
@@ -49,7 +48,7 @@ describe("pretty print", () => {
             _logger.on("error", () => {
                 resolve();
             });
-            _logger.error(axiosError, "error");
+            _logger.error({ error: "error" }, "error");
         });
     });
 });
@@ -65,10 +64,7 @@ describe("no pretty settings", () => {
 });
 
 describe("error logging", () => {
-    let logger = Logger({ pretty: false, formatter: JSON.stringify });
-    it("formats axios error", () => {
-        logger.error(axiosError, "axios error test");
-    });
+    let logger = Logger({ formatter: JSON.stringify });
 
     it("formats normal errors", () => {
         logger.error(new TypeError("an error"), "Error instance");
