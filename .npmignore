@@ -7,4 +7,4 @@ example/
 .mocharc.js
 .prettierrc
 lib/tsconfig.tsbuildinfo
-*.mocha.js
+*.mocha.*
