@@ -1,10 +1,15 @@
 import { stringify } from "../json";
-import { CreateLoggerOptions, Logger, LogEntry } from "./logger.interfaces";
-import { Observable } from "../observable";
+import {
+    CreateLoggerOptions,
+    LogEntry,
+    LoggerEvent,
+} from "./logger.interfaces";
+import { Handler, Observable } from "../observable";
 import { Context, cyan, prettyFormatter } from "./logger.helpers";
 import { ERROR_LEVEL } from "./logger.constants";
 
-export function Logger(options: CreateLoggerOptions = {}): Logger {
+export type Logger = ReturnType<typeof Logger>;
+export function Logger(options: CreateLoggerOptions = {}) {
     let {
         debug: _debug = true,
         id: _id,
@@ -45,9 +50,11 @@ export function Logger(options: CreateLoggerOptions = {}): Logger {
     }
 
     return {
-        on: _observable.on,
+        on(event: LoggerEvent, handler: Handler<LogEntry>) {
+            _observable.on(event, handler);
+        },
 
-        inspect(payload) {
+        inspect(payload: any) {
             if (typeof payload === "object" || Array.isArray(payload)) {
                 Object.entries(Context(payload)).forEach(([key, value]) => {
                     console.log(`${_pretty ? cyan(key) : key}: `, value);
@@ -57,7 +64,7 @@ export function Logger(options: CreateLoggerOptions = {}): Logger {
             }
         },
 
-        debug(payload, message) {
+        debug(payload: any, message?: string) {
             if (!_debug) return;
 
             let entry = _log({
@@ -69,7 +76,7 @@ export function Logger(options: CreateLoggerOptions = {}): Logger {
             _observable.emit("debug", entry);
         },
 
-        info(payload, message) {
+        info(payload: any, message?: string) {
             let entry = _log({
                 level: ERROR_LEVEL.INFO,
                 message,
@@ -79,7 +86,7 @@ export function Logger(options: CreateLoggerOptions = {}): Logger {
             _observable.emit("info", entry);
         },
 
-        warning(payload, message) {
+        warning(payload: any, message?: string) {
             let entry = _log({
                 level: ERROR_LEVEL.WARNING,
                 message,
@@ -89,7 +96,7 @@ export function Logger(options: CreateLoggerOptions = {}): Logger {
             _observable.emit("warning", entry);
         },
 
-        error(err, message) {
+        error(err: any, message?: string) {
             let entry = _log({
                 level: ERROR_LEVEL.ERROR,
                 message: message ?? err?.message,
