@@ -11,10 +11,11 @@ export function StopWatch() {
             _laps.push([name, new Date().valueOf()]);
         },
 
-        printLaps() {
-            return _laps.map(([key, point]) => {
-                return [key, point - _time];
-            });
+        getLaps(): Record<string, number> {
+            return _laps.reduce((result, [key, point]) => {
+                result[key] = point - _time;
+                return result;
+            }, {} as Record<string, number>);
         },
     };
 }

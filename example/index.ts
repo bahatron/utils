@@ -85,7 +85,7 @@ async function stopWatchTest() {
         counter += 1;
     }
 
-    console.log(watch.printLaps());
+    console.log(watch.getLaps());
 }
 
 if (yargs.bht) {
