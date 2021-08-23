@@ -20,6 +20,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
     let _observable = Observable();
     let _formatter = _pretty ? prettyFormatter : formatter;
+    let _stack: Set<Function> = new Set();
 
     function _log(params: {
         level: string;
@@ -51,7 +52,13 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
     return {
         on(event: LoggerEvent, handler: Handler<LogEntry>) {
-            _observable.on(event, handler);
+            let job = async (entry: LogEntry) => {
+                _stack.add(job);
+                await handler(entry);
+                _stack.delete(job);
+            };
+
+            _observable.on(event, job);
         },
 
         inspect(payload: any) {
@@ -89,8 +96,8 @@ export function Logger(options: CreateLoggerOptions = {}) {
         warning(payload: any, message?: string) {
             let entry = _log({
                 level: ERROR_LEVEL.WARNING,
-                message,
                 context: Context(payload),
+                message: message ?? payload?.message,
             });
 
             _observable.emit("warning", entry);
@@ -104,6 +111,10 @@ export function Logger(options: CreateLoggerOptions = {}) {
             });
 
             _observable.emit("error", entry);
+        },
+
+        async flush() {
+            await Promise.all(Array.from(_stack));
         },
     };
 }

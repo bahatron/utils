@@ -1,4 +1,4 @@
-import { Logger } from "@bahatron/utils";
+import { Logger, Timer } from "@bahatron/utils";
 import axios from "axios";
 import pino from "pino";
 import cheerio from "cheerio";
@@ -15,7 +15,7 @@ const pinoLogger = pino({
     timestamp: pino.stdTimeFunctions.isoTime,
 });
 
-const bhtLogger = Logger({
+const bhtLogger = Logger.Logger({
     // pretty: true,
     // id: () => "testy",
     id: "testy",
@@ -75,6 +75,19 @@ function separator(msg) {
     console.log(`=`.repeat(80));
 }
 
+async function stopWatchTest() {
+    let watch = Timer.StopWatch();
+
+    let counter = 0;
+    while (counter < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        watch.addLap(`round:${counter + 1}`);
+        counter += 1;
+    }
+
+    console.log(watch.printLaps());
+}
+
 if (yargs.bht) {
     bhtLoggerBench();
 } else if (yargs.pino) {
@@ -83,6 +96,8 @@ if (yargs.bht) {
     axiosError();
 } else if (yargs.recursiveTest) {
     recursiveTest();
+} else if (yargs.timer) {
+    stopWatchTest();
 } else {
     console.error(`Valid params: bht | pino | axiosError | recursiveTest`);
 }
