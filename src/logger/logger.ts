@@ -62,7 +62,10 @@ export function Logger(options: CreateLoggerOptions = {}) {
         },
 
         inspect(payload: any) {
-            if (typeof payload === "object" || Array.isArray(payload)) {
+            if (
+                payload &&
+                (typeof payload === "object" || Array.isArray(payload))
+            ) {
                 Object.entries(Context(payload)).forEach(([key, value]) => {
                     console.log(`${_pretty ? cyan(key) : key}: `, value);
                 });

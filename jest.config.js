@@ -1,10 +1,5 @@
-// For a detailed explanation regarding each configuration property, visit:
-// https://jestjs.io/docs/en/configuration.html
-
+/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-    clearMocks: true,
-    verbose: false,
+    preset: "ts-jest",
     testEnvironment: "node",
-    testMatch: ["**/*.test.js"],
-    testTimeout: 20000,
 };

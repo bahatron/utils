@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { getenv } from "./env";
 
 describe("getenv", () => {
@@ -6,14 +5,14 @@ describe("getenv", () => {
         process.env.var = "0";
         (<any>process.env).bar = 0;
 
-        expect(getenv("var")).to.equal("0");
-        expect(getenv("bar")).to.equal("0");
+        expect(getenv("var")).toBe("0");
+        expect(getenv("bar")).toBe("0");
     });
 
     it("given empty string, it'll return string ''", () => {
         process.env.var = "";
 
-        expect(getenv("var")).to.equal("");
+        expect(getenv("var")).toBe("");
     });
 
     it("returns a default value if env is not set and was passed as second parameter", () => {
@@ -21,12 +20,12 @@ describe("getenv", () => {
 
         let result = getenv("var", "default_value");
 
-        expect(result).to.equal("default_value");
+        expect(result).toBe("default_value");
     });
 
     it("throws an error if key does not exist and no default value was given", () => {
         delete process.env.var;
 
-        expect(() => getenv("var")).to.throw(Error);
+        expect(() => getenv("var")).toThrow(Error);
     });
 });

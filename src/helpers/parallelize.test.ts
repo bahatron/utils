@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { parallelize } from ".";
 
 describe("parallelize", () => {
@@ -11,6 +10,6 @@ describe("parallelize", () => {
             handler: () => {},
         });
 
-        expect(queue.length).to.eq(3);
+        expect(queue.length).toBe(3);
     });
 });

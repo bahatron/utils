@@ -11,6 +11,7 @@
     "dependencies": {
         "@types/pino": "^6.3.9",
         "axios": "^0.21.1",
+        "cheerio": "^1.0.0-rc.10",
         "fast-safe-stringify": "^2.0.8",
         "pino": "^6.11.3",
         "pino-pretty": "^5.1.2",

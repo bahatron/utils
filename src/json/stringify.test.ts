@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { stringify } from ".";
 
 describe.only("stringify", () => {
@@ -7,6 +6,6 @@ describe.only("stringify", () => {
 
         let result = stringify(jsonString);
 
-        expect(JSON.parse(jsonString)).to.deep.eq(JSON.parse(result));
+        expect(JSON.parse(jsonString)).toEqual(JSON.parse(result));
     });
 });

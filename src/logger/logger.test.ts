@@ -17,7 +17,7 @@ describe("pretty print", () => {
     const _logger = Logger({ pretty: true });
 
     it("pretty debug", async () => {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             _logger.on("debug", () => {
                 resolve();
             });
@@ -26,7 +26,7 @@ describe("pretty print", () => {
     });
 
     it("pretty info", async () => {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             _logger.on("info", () => {
                 resolve();
             });
@@ -35,7 +35,7 @@ describe("pretty print", () => {
     });
 
     it("pretty warning", async () => {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             _logger.on("warning", () => {
                 resolve();
             });
@@ -44,7 +44,7 @@ describe("pretty print", () => {
     });
 
     it("pretty error", async () => {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             _logger.on("error", () => {
                 resolve();
             });
@@ -91,6 +91,10 @@ describe("inspect", () => {
             mode: "no pretty print",
             ...LOGGER_TEST_PAYLOAD,
         });
+
+        noPretty.inspect(null);
+
+        noPretty.inspect(undefined);
     });
 
     it("pretty", () => {
