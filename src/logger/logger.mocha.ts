@@ -64,7 +64,7 @@ describe("no pretty settings", () => {
 });
 
 describe("error logging", () => {
-    let logger = Logger({ formatter: JSON.stringify });
+    let logger = Logger();
 
     it("formats normal errors", () => {
         logger.error(new TypeError("an error"), "Error instance");

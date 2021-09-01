@@ -5,3 +5,4 @@ export * as Json from "./json";
 export * as Helpers from "./helpers";
 export * as Types from "./types";
 export * as Timer from "./timer";
+export * as Validator from "./validator";

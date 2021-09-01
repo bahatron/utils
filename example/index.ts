@@ -58,7 +58,7 @@ function bhtLoggerBench() {
     console.log(end);
 }
 
-function recursiveTest() {
+function bigObject() {
     let _parsed = cheerio.load(require("./fixture"));
 
     let _html = _parsed(".tmJOVKTrHAB4bLpcMjzQ");
@@ -94,10 +94,10 @@ if (yargs.bht) {
     pinoLoggerBench();
 } else if (yargs.axiosError) {
     axiosError();
-} else if (yargs.recursiveTest) {
-    recursiveTest();
+} else if (yargs.bigObject) {
+    bigObject();
 } else if (yargs.timer) {
     stopWatchTest();
 } else {
-    console.error(`Valid params: bht | pino | axiosError | recursiveTest`);
+    console.error(`Valid params: bht | pino | axiosError | bigObject`);
 }

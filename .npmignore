@@ -5,6 +5,7 @@ tests/
 tsconfig*.json
 example/
 .mocharc.js
+jest.config.js
 .prettierrc
 lib/tsconfig.tsbuildinfo
 *.mocha.*
