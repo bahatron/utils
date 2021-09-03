@@ -5,7 +5,7 @@ import {
     LoggerEvent,
 } from "./logger.interfaces";
 import { Handler, Observable } from "../observable";
-import { Context, cyan, prettyFormatter } from "./logger.helpers";
+import { LogContext, cyan, prettyFormatter } from "./logger.helpers";
 import { ERROR_LEVEL } from "./logger.constants";
 
 export type Logger = ReturnType<typeof Logger>;
@@ -66,7 +66,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
                 payload &&
                 (typeof payload === "object" || Array.isArray(payload))
             ) {
-                Object.entries(Context(payload)).forEach(([key, value]) => {
+                Object.entries(LogContext(payload)).forEach(([key, value]) => {
                     console.log(`${_pretty ? cyan(key) : key}: `, value);
                 });
             } else {
@@ -80,7 +80,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             let entry = _log({
                 level: ERROR_LEVEL.DEBUG,
                 message,
-                context: Context(payload),
+                context: LogContext(payload),
             });
 
             _observable.emit("debug", entry);
@@ -90,7 +90,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             let entry = _log({
                 level: ERROR_LEVEL.INFO,
                 message,
-                context: Context(payload),
+                context: LogContext(payload),
             });
 
             _observable.emit("info", entry);
@@ -99,7 +99,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
         warning(payload: any, message?: string) {
             let entry = _log({
                 level: ERROR_LEVEL.WARNING,
-                context: Context(payload),
+                context: LogContext(payload),
                 message: message ?? payload?.message,
             });
 
@@ -110,7 +110,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             let entry = _log({
                 level: ERROR_LEVEL.ERROR,
                 message: message ?? err?.message,
-                context: Context(err),
+                context: LogContext(err),
             });
 
             _observable.emit("error", entry);

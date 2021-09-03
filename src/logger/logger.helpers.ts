@@ -44,7 +44,7 @@ export function prettyFormatter({
     return `[${timestamp}] ${_level()}${_id()}${_message()}${_context()}`;
 }
 
-export function Context(payload: any) {
+export function LogContext(payload: any) {
     let weakSet = new WeakSet();
     function recursiveReduce(payload: any): any {
         if (payload?.isAxiosError) {

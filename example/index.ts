@@ -69,7 +69,7 @@ function bigObject() {
     pinoLogger.info(_html);
 }
 
-function separator(msg) {
+function separator(msg: string) {
     console.log(`=`.repeat(80));
     console.log(msg);
     console.log(`=`.repeat(80));
