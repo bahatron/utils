@@ -2,12 +2,21 @@ import { ns } from "express-http-context";
 
 export { ns as AsyncContext };
 
-export const Context = (func: Function) => {
+export function Context(func: Function) {
     return function (...args: any[]) {
         ns.run(() => func(...args));
     };
-};
+}
 
-export const RunInContext = (func: Function) => {
-    Context(func)();
+export const RunInContext = (
+    func: Function,
+    context: [string, string][] = []
+) => {
+    Context((...args: any[]) => {
+        context.forEach(([key, value]) => {
+            ns.set(key, value);
+        });
+
+        func(args);
+    })();
 };

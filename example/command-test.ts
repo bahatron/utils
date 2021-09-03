@@ -1,14 +1,10 @@
 import { randomUUID } from "crypto";
 import { ns } from "express-http-context";
 import { Logger } from "../lib/logger";
-import { execute } from "../src/helpers";
+import { RunInContext } from "../src/context";
 
-const REQUEST_ID = "requestId";
-
-execute(async () => {
-    ns.set(REQUEST_ID, `requestId:${randomUUID()}`);
-
-    let logger = Logger({ id: () => ns.get(REQUEST_ID) });
-
-    logger.info(`harro`);
-});
+RunInContext(async () => {
+    let logger = Logger({ id: () => ns.get("testy") });
+    logger.info(`hello`);
+    logger.info(`bye`);
+}, [["testy", `tasty:${process.pid}:${randomUUID()}`]]);
