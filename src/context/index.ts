@@ -1,5 +1,4 @@
 import { ns } from "express-http-context";
-
 export { ns as AsyncContext };
 
 export function Context(func: Function) {
@@ -10,10 +9,10 @@ export function Context(func: Function) {
 
 export const RunInContext = (
     func: Function,
-    context: [string, string][] = []
+    context: Record<string, string> = {}
 ) => {
     Context((...args: any[]) => {
-        context.forEach(([key, value]) => {
+        Object.entries(context).forEach(([key, value]) => {
             ns.set(key, value);
         });
 
