@@ -1,12 +1,9 @@
 import { stringify } from "../json";
-import {
-    CreateLoggerOptions,
-    LogEntry,
-    LoggerEvent,
-} from "./logger.interfaces";
+import { CreateLoggerOptions, LogEntry, LoggerEvent } from "./interfaces";
 import { Handler, Observable } from "../observable";
-import { LogContext, cyan, prettyFormatter } from "./logger.helpers";
-import { ERROR_LEVEL } from "./logger.constants";
+import { cyan, prettyFormatter } from "./pretty-formatter";
+import { ERROR_LEVEL } from "./constants";
+import { LogContext } from "./context";
 
 export type Logger = ReturnType<typeof Logger>;
 export function Logger(options: CreateLoggerOptions = {}) {
@@ -51,6 +48,10 @@ export function Logger(options: CreateLoggerOptions = {}) {
     }
 
     return {
+        async flush() {
+            await Promise.all(Array.from(_stack));
+        },
+
         on(event: LoggerEvent, handler: Handler<LogEntry>) {
             let job = async (entry: LogEntry) => {
                 _stack.add(job);
@@ -114,10 +115,6 @@ export function Logger(options: CreateLoggerOptions = {}) {
             });
 
             _observable.emit("error", entry);
-        },
-
-        async flush() {
-            await Promise.all(Array.from(_stack));
         },
     };
 }

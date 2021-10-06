@@ -6,19 +6,20 @@ import cheerio from "cheerio";
 const { argv: yargs } = require("yargs");
 
 const pinoLogger = pino({
-    name: "testy",
+    // name: "testy",
     formatters: {
         level: (label) => ({
             level: label,
         }),
     },
     timestamp: pino.stdTimeFunctions.isoTime,
+    prettyPrint: true,
 });
 
 const bhtLogger = Logger.Logger({
-    // pretty: true,
+    pretty: true,
     // id: () => "testy",
-    id: "testy",
+    // id: "testy",
     // timestamp: () => new Date().valueOf(),
 });
 
@@ -69,7 +70,7 @@ function bigObject() {
     pinoLogger.info(_html);
 }
 
-function separator(msg: string) {
+function separator(msg: string = "") {
     console.log(`=`.repeat(80));
     console.log(msg);
     console.log(`=`.repeat(80));
@@ -88,6 +89,33 @@ async function stopWatchTest() {
     console.log(watch.getLaps());
 }
 
+function functionPrint() {
+    pinoLogger.info({ func: functionPrint }, "a function in pino");
+    separator();
+    bhtLogger.info({ func: functionPrint }, "a function in bht");
+}
+
+function helloWorld() {
+    let context = {
+        hello: "world",
+        c137: {
+            rick: "sanchez",
+            morty: "smith",
+        },
+        foo: ["man", "choo"],
+        life: 43,
+        bar: [
+            {
+                hi: "there",
+            },
+        ],
+    };
+
+    pinoLogger.info(context, "pino logger");
+    console.log();
+    bhtLogger.info(context, "bht logger");
+}
+
 if (yargs.bht) {
     bhtLoggerBench();
 } else if (yargs.pino) {
@@ -98,6 +126,8 @@ if (yargs.bht) {
     bigObject();
 } else if (yargs.timer) {
     stopWatchTest();
+} else if (yargs.func) {
+    functionPrint();
 } else {
-    console.error(`Valid params: bht | pino | axiosError | bigObject`);
+    helloWorld();
 }
