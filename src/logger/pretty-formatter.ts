@@ -32,9 +32,13 @@ export function prettyFormatter({
     let _message = () => (message ? ` ${cyan(message)}` : ``);
     let _id = () => (id ? ` (${id}):` : ``);
     let _context = () => {
-        return hasEntries(context)
-            ? `\n${stringify(context, null, 4)}` // .slice(2, -2).replace(/,\n/g, "\n")
-            : `    ${context}`;
+        return context !== undefined
+            ? `\n${
+                  hasEntries(context)
+                      ? stringify(context, null, 4)
+                      : `    ${context}`
+              }`
+            : ``;
     };
 
     return `[${timestamp}] ${_level()}${_id()}${_message()}${_context()}`;
