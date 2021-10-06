@@ -5,7 +5,7 @@
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
     "scripts": {
-        "test": "npm run build && jest",
+        "test": "jest",
         "watch": "tsc -b -w tsconfig.build.json",
         "build": "tsc -p tsconfig.build.json",
         "build:clean": "rm -rf lib && npm run build",

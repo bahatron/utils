@@ -1,4 +1,4 @@
-import { Logger } from ".";
+import { Logger } from "../src/logger";
 
 const LOGGER_TEST_PAYLOAD = {
     foo: "bar",
@@ -135,8 +135,10 @@ describe("nested context building", () => {
             "lorem ipsum"
         );
 
-        logger.info(funcWithName, "nameo");
+        logger.info(funcWithName, "function");
 
         logger.warning("no context no problem");
+
+        logger.error(null, "a null");
     });
 });

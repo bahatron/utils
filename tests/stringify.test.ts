@@ -1,4 +1,4 @@
-import { stringify } from ".";
+import { stringify } from "../src/json";
 
 describe.only("stringify", () => {
     it("does not scape stringified jsons", () => {

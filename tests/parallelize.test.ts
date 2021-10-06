@@ -1,4 +1,4 @@
-import { parallelize } from ".";
+import { parallelize } from "../src/helpers";
 
 describe("parallelize", () => {
     it("does not modify the array given as queue", async () => {
