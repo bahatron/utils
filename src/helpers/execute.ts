@@ -5,7 +5,12 @@ export function execute(
     defaultContext: Record<string, string> = {}
 ) {
     RunInContext(async () => {
-        await handler();
-        process.exit(0);
+        try {
+            await handler();
+            process.exit(0);
+        } catch (err) {
+            console.error(err);
+            process.exit(1);
+        }
     }, defaultContext);
 }
