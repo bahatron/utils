@@ -1,5 +1,6 @@
 export type Handler<T> = (payload: T) => void;
 
+export type Observable = ReturnType<typeof Observable>;
 export function Observable<T = any>() {
     const _handlers: Record<string, Set<Handler<T>>> = {};
 
