@@ -7,10 +7,18 @@ const LOGGER_TEST_PAYLOAD = {
         "morty",
         {
             summer: "sister",
-            jerry: "dad",
+            jerry: "useless",
             beth: ["mother", "clone"],
         },
     ],
+    number: 123,
+    nulleo: null,
+    undefo: undefined,
+    bool: true,
+    err: new Error(),
+    array: ["hello", new Error("error inside array")],
+    banana: "pijama",
+    func: () => `this is a function`,
 };
 
 describe("pretty print", () => {
@@ -82,31 +90,29 @@ describe("error logging", () => {
 });
 
 describe("inspect", () => {
-    it("no pretty", () => {
-        let noPretty = Logger({
-            id: "no_pretty_inspect",
-        });
-
-        noPretty.inspect({
-            mode: "no pretty print",
-            ...LOGGER_TEST_PAYLOAD,
-        });
-
-        noPretty.inspect(null);
-
-        noPretty.inspect(undefined);
+    let logger = Logger({
+        pretty: true,
+        id: "inspect_logger",
     });
 
-    it("pretty", () => {
-        let pretty = Logger({
-            pretty: true,
-            id: "pretty_inspect",
-        });
+    it("inspects null", () => {
+        logger.inspect(null);
+    });
 
-        pretty.inspect({
-            mode: "yes pretty print",
-            ...LOGGER_TEST_PAYLOAD,
-        });
+    it("inspects undefined", () => {
+        logger.inspect(undefined);
+    });
+
+    it("inspects object", () => {
+        logger.inspect(LOGGER_TEST_PAYLOAD);
+    });
+
+    it("inspects primitive", () => {
+        logger.inspect("hello there");
+    });
+
+    it("inspects array", () => {
+        logger.inspect([1, 2, "3"]);
     });
 });
 
@@ -117,25 +123,18 @@ describe("nested context building", () => {
             id: "nested context parsing",
         });
 
-        function funcWithName() {
-            return `this is a function`;
-        }
-
         logger.info(
             {
                 ...LOGGER_TEST_PAYLOAD,
-                err: new Error(),
-                array: ["hello", new Error("error inside array")],
-                banana: "pijama",
-                nulleo: null,
-                undefo: undefined,
-                func: () => `this is a function`,
-                funcWithName,
             },
             "lorem ipsum"
         );
 
-        logger.info(funcWithName, "function");
+        logger.info(function funcWithName() {
+            return `this is a function`;
+        }, "function with name");
+
+        logger.info(() => "nameless function", "nameless function");
 
         logger.warning("no context no problem");
 

@@ -1,11 +1,12 @@
+import { stringify } from "../json";
+import { ERROR_LEVEL } from "./constants";
+import { LogEntry } from "./interfaces";
+
 export const green = (text: string) => `\x1b[32m${text}\x1b[0m`;
 export const blue = (text: string) => `\x1b[34m${text}\x1b[0m`;
 export const orange = (text: string) => `\x1b[33m${text}\x1b[0m`;
 export const red = (text: string) => `\x1b[31m${text}\x1b[0m`;
 export const cyan = (text: string) => `\x1b[36m${text}\x1b[0m`;
-import { stringify } from "../json";
-import { ERROR_LEVEL } from "./constants";
-import { LogEntry } from "./interfaces";
 
 export function prettyFormatter({
     timestamp,
@@ -44,14 +45,7 @@ export function prettyFormatter({
     return `[${timestamp}] ${_level()}${_id()}${_message()}${_context()}`;
 }
 
-function hasEntries(payload: any) {
-    return (
-        (typeof payload === "object" && Boolean(payload)) ||
-        Array.isArray(payload)
-    );
-}
-
-function ymlContext(context: any, _level = 0): any {
+export function ymlFormatter(context: any, _level = 0): string {
     function indentation() {
         return `\n${" ".repeat((_level + 1) * 4)}`;
     }
@@ -59,13 +53,20 @@ function ymlContext(context: any, _level = 0): any {
     if (hasEntries(context)) {
         return Object.entries(context).reduce((carry, [key, value]) => {
             return carry.concat(
-                `${indentation()}${key}: ${
+                `${indentation()}${cyan(key)}: ${
                     hasEntries(value)
-                        ? ymlContext(value, _level + 1)
+                        ? ymlFormatter(value, _level + 1)
                         : valuePrint(value)
                 }`
             );
         }, ``);
     }
     return `${indentation()}${valuePrint(context)}`;
+}
+
+function hasEntries(payload: any) {
+    return (
+        (typeof payload === "object" && Boolean(payload)) ||
+        Array.isArray(payload)
+    );
 }

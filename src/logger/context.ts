@@ -31,7 +31,7 @@ export function LogContext(payload: any) {
                 return aggregate;
             }, {} as Record<string | number, any>);
         } else if (typeof payload === "function") {
-            return `[Function: ${(payload as Function).name}]`;
+            return `[Function: ${(payload as Function).name || undefined}]`;
         } else {
             return payload;
         }

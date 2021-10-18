@@ -1,7 +1,7 @@
 import { stringify } from "../json";
 import { CreateLoggerOptions, LogEntry, LoggerEvent } from "./interfaces";
 import { Handler, Observable } from "../observable";
-import { cyan, prettyFormatter } from "./pretty-formatter";
+import { red, cyan, prettyFormatter, ymlFormatter } from "./formatters";
 import { ERROR_LEVEL } from "./constants";
 import { LogContext } from "./context";
 
@@ -63,15 +63,14 @@ export function Logger(options: CreateLoggerOptions = {}) {
         },
 
         inspect(payload: any) {
-            if (
-                payload &&
-                (typeof payload === "object" || Array.isArray(payload))
-            ) {
-                Object.entries(LogContext(payload)).forEach(([key, value]) => {
-                    console.log(`${_pretty ? cyan(key) : key}: `, value);
-                });
-            } else {
-                console.log(payload);
+            let print = `${red(
+                `type: ${Array.isArray(payload) ? "array" : typeof payload}`
+            )}${ymlFormatter(LogContext(payload))}\n`;
+
+            try {
+                process.stdout.write(print);
+            } catch (err) {
+                console.log(print);
             }
         },
 
