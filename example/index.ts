@@ -128,6 +128,20 @@ if (yargs.bht) {
     stopWatchTest();
 } else if (yargs.func) {
     functionPrint();
+} else if (yargs.noContext) {
+    Array(10)
+        .fill(null)
+        .map(() => {
+            bhtLogger.info(`logging a message with no context`);
+        });
+
+    bhtLogger.info({ foo: "bar" }, "I'm a rogue context");
+
+    Array(10)
+        .fill(null)
+        .map(() => {
+            bhtLogger.info(`logging a message with no context`);
+        });
 } else {
     helloWorld();
 }
