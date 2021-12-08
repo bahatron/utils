@@ -1,5 +1,3 @@
-import { ObjectBag } from "../types";
-
 /**
  * @todo add start, stop and reset methods
  */
@@ -16,7 +14,7 @@ export function StopWatch() {
             _laps.push([name, new Date().valueOf()]);
         },
 
-        getLaps(): ObjectBag<number> {
+        getLaps(): Record<string, number> {
             return _laps.reduce(
                 (result, [key, point], index) => {
                     if (index === 0) {
@@ -27,7 +25,7 @@ export function StopWatch() {
 
                     return result;
                 },
-                { start: 0 } as ObjectBag<number>
+                { start: 0 } as Record<string, number>
             );
         },
     };

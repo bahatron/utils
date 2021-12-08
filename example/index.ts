@@ -5,6 +5,15 @@ import cheerio from "cheerio";
 
 const { argv: yargs } = require("yargs");
 
+const CONTEXT = [
+    {
+        rick: "c-137",
+        foo: ["bar", "baz"],
+    },
+];
+
+// const CONTEXT = null;
+
 const pinoLogger = pino({
     // name: "testy",
     formatters: {
@@ -13,7 +22,7 @@ const pinoLogger = pino({
         }),
     },
     timestamp: pino.stdTimeFunctions.isoTime,
-    prettyPrint: true,
+    // prettyPrint: true,
 });
 
 const bhtLogger = Logger.Logger({
@@ -41,7 +50,7 @@ function axiosError() {
 function pinoLoggerBench() {
     let start = new Date();
     for (let i = 0; i < 1000000; i++) {
-        pinoLogger.info({ rick: "c-137" }, "hello");
+        pinoLogger.info(CONTEXT, "hello");
     }
     let end = new Date().valueOf() - start.valueOf();
 
@@ -51,7 +60,7 @@ function pinoLoggerBench() {
 function bhtLoggerBench() {
     let start = new Date();
     for (let i = 0; i < 1000000; i++) {
-        bhtLogger.info({ rick: "c-137" }, "hello");
+        bhtLogger.info(CONTEXT, "hello");
     }
 
     let end = new Date().valueOf() - start.valueOf();

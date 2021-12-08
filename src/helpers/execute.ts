@@ -1,8 +1,8 @@
-import { RunInContext } from "../context/index";
+import { RunInContext } from "./run-in-context";
 
 export function execute(
     handler: () => void,
-    defaultContext: Record<string, string> = {}
+    context: Record<string, string> = {}
 ) {
     RunInContext(async () => {
         try {
@@ -12,5 +12,5 @@ export function execute(
             console.error(err);
             process.exit(1);
         }
-    }, defaultContext);
+    }, context);
 }
