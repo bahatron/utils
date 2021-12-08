@@ -1,6 +1,8 @@
 # Utils
 
-> npm install @bahatron/utils
+```
+npm install @bahatron/utils
+```
 
 A collection of utility functions and objects
 
