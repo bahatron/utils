@@ -2,7 +2,7 @@ import { AsyncContext, Context } from "../context";
 
 export const RunInContext = (
     func: Function,
-    context: Record<string, string> = {}
+    context: Record<string, any> = {}
 ) => {
     Context(() => {
         Object.entries(context).forEach(([key, value]) => {
