@@ -1,4 +1,4 @@
-import { getenv } from "../src/helpers/env";
+import { getenv } from "../src/helpers/get-env";
 
 describe("getenv", () => {
     it("given 0, it'll return string '0'", () => {

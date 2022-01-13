@@ -1,9 +1,9 @@
-import { ns } from "express-http-context";
+import cls from "cls-hooked";
 
-export { ns as AsyncContext };
+export const AsyncContext = cls.createNamespace(".");
 
 export function Context(func: Function) {
     return function (...args: any[]) {
-        ns.run(() => func(...args));
+        AsyncContext.run(() => func(...args));
     };
 }

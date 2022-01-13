@@ -23,6 +23,7 @@
     },
     "homepage": "https://github.com/bahatron/utils#readme",
     "devDependencies": {
+        "@types/cls-hooked": "^4.3.3",
         "@types/jest": "^27.0.1",
         "@types/node": "^14.17.14",
         "jest": "^27.1.0",
@@ -31,7 +32,7 @@
         "typescript": "^4.4.2"
     },
     "dependencies": {
-        "express-http-context": "^1.2.4",
+        "cls-hooked": "^4.2.2",
         "fast-safe-stringify": "^2.0.8",
         "jsonschema": "^1.4.0"
     }

@@ -1,7 +1,7 @@
-import { stringify } from "../json";
+import { stringify } from "../helpers/stringify";
 import { CreateLoggerOptions, LogEntry, LoggerEvent } from "./interfaces";
 import { Handler, Observable } from "../observable";
-import { red, cyan, prettyFormatter, ymlFormatter } from "./formatters";
+import { red, prettyFormatter, ymlFormatter } from "./formatters";
 import { ERROR_LEVEL } from "./constants";
 import { LogContext } from "./context";
 
@@ -64,7 +64,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
         inspect(payload: any) {
             let print = `${red(
-                `type: ${Array.isArray(payload) ? "array" : typeof payload}`
+                `type: ${Array.isArray(payload) ? "array" : typeof payload}`,
             )}${ymlFormatter(LogContext(payload))}\n`;
 
             try {

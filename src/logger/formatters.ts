@@ -1,4 +1,4 @@
-import { stringify } from "../json";
+import { stringify } from "../helpers/stringify";
 import { ERROR_LEVEL } from "./constants";
 import { LogEntry } from "./interfaces";
 
@@ -57,7 +57,7 @@ export function ymlFormatter(context: any, _level = 0): string {
                     hasEntries(value)
                         ? ymlFormatter(value, _level + 1)
                         : valuePrint(value)
-                }`
+                }`,
             );
         }, ``);
     }
