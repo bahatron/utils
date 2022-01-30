@@ -1,7 +1,8 @@
-import { Logger, Timer } from "@bahatron/utils";
+import { Logger } from "@bahatron/utils";
 import axios from "axios";
 import pino from "pino";
 import cheerio from "cheerio";
+import { retry } from "../lib/helpers";
 
 const { argv: yargs } = require("yargs");
 
@@ -85,19 +86,6 @@ function separator(msg: string = "") {
     console.log(`=`.repeat(80));
 }
 
-async function stopWatchTest() {
-    let watch = Timer.StopWatch();
-
-    let counter = 0;
-    while (counter < 3) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        watch.addLap(`round:${counter + 1}`);
-        counter += 1;
-    }
-
-    console.log(watch.getLaps());
-}
-
 function functionPrint() {
     pinoLogger.info({ func: functionPrint }, "a function in pino");
     separator();
@@ -125,6 +113,14 @@ function helloWorld() {
     bhtLogger.info(context, "bht logger");
 }
 
+function retryTest() {
+    let func = (a: string, b: number, c: any[]) => {
+        return "";
+    };
+
+    let retrier = retry(func);
+}
+
 if (yargs.bht) {
     bhtLoggerBench();
 } else if (yargs.pino) {
@@ -133,8 +129,6 @@ if (yargs.bht) {
     axiosError();
 } else if (yargs.bigObject) {
     bigObject();
-} else if (yargs.timer) {
-    stopWatchTest();
 } else if (yargs.func) {
     functionPrint();
 } else if (yargs.noContext) {

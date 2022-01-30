@@ -7,17 +7,15 @@ export async function parallelize<T = any>({
     handler: (val: T) => void;
     workers: number;
 }) {
-    let _queue = Array.from(queue);
-
     await Promise.all(
         Array(workers)
             .fill(undefined)
             .map(async () => {
                 let item;
 
-                while ((item = _queue.pop())) {
+                while ((item = queue.pop())) {
                     await handler(item);
                 }
-            })
+            }),
     );
 }

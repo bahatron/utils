@@ -38,7 +38,7 @@ export function prettyFormatter({
                   hasEntries(context)
                       ? stringify(context, null, 4)
                       : `    ${context}`
-              }\n`
+              }`
             : ``;
     };
 
