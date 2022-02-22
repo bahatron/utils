@@ -62,21 +62,49 @@ export function TimeOut(
     context?: Exception["context"],
     message: string = "Request Timed Out",
 ): Exception {
-    return new Exception("TimeOut", message, 406, context);
+    return new Exception("TimeOut", message, 408, context);
 }
 
 export function Conflict(
     context?: Exception["context"],
     message: string = "Resource Conflict",
 ): Exception {
-    return new Exception("Conflict", message, 406, context);
+    return new Exception("Conflict", message, 409, context);
 }
 
 export function Gone(
     context?: Exception["context"],
     message: string = "Resource Gone",
 ): Exception {
-    return new Exception("Gone", message, 406, context);
+    return new Exception("Gone", message, 410, context);
+}
+
+export function PreconditionFailed(
+    context?: Exception["context"],
+    message: string = "Precondition Failed",
+): Exception {
+    return new Exception("PreconditionFailed", message, 412, context);
+}
+
+export function PayloadTooLarge(
+    context?: Exception["context"],
+    message: string = "Payload Too Large",
+): Exception {
+    return new Exception("PayloadTooLarge", message, 413, context);
+}
+
+export function URITooLong(
+    context?: Exception["context"],
+    message: string = "URI Too Long",
+): Exception {
+    return new Exception("URITooLong", message, 414, context);
+}
+
+export function UnsupportedMediaType(
+    context?: Exception["context"],
+    message: string = "Unsupported Media Type",
+): Exception {
+    return new Exception("UnsupportedMediaType", message, 415, context);
 }
 
 export function ExpectationFailed(
@@ -84,6 +112,13 @@ export function ExpectationFailed(
     message: string = "Expectation Failed",
 ): Exception {
     return new Exception("ExpectationFailed", message, 417, context);
+}
+
+export function UnprocessableEntity(
+    context?: Exception["context"],
+    message: string = "Unprocessable Entity",
+): Exception {
+    return new Exception("UnprocessableEntity", message, 429, context);
 }
 
 export function TooManyRequests(
