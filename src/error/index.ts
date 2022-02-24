@@ -25,7 +25,7 @@ export function BadRequest(
 
 export function Unauthorized(
     context?: Exception["context"],
-    message: string = "Resource not found",
+    message: string = "Unauthorized",
 ): Exception {
     return new Exception("Unauthorized", message, 401, context);
 }
