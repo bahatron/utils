@@ -1,4 +1,4 @@
-export * from "./run-in-context";
+export * from "../async-context/run-in-context";
 export * from "./parallelize";
 export * from "./execute";
 export * from "./sleep";

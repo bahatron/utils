@@ -1,4 +1,4 @@
-import { RunInContext } from "./run-in-context";
+import { RunInContext } from "../async-context/run-in-context";
 
 export function execute(
     handler: () => void,
