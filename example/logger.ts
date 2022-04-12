@@ -2,7 +2,6 @@ import { Logger } from "@bahatron/utils";
 import axios from "axios";
 import pino from "pino";
 import cheerio from "cheerio";
-import { retry } from "../lib/helpers";
 
 const { argv: yargs } = require("yargs");
 
@@ -111,14 +110,6 @@ function helloWorld() {
     pinoLogger.info(context, "pino logger");
     console.log();
     bhtLogger.info(context, "bht logger");
-}
-
-function retryTest() {
-    let func = (a: string, b: number, c: any[]) => {
-        return "";
-    };
-
-    let retrier = retry(func);
 }
 
 if (yargs.bht) {
