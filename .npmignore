@@ -3,7 +3,7 @@ node_modules/
 src/
 tests/
 tsconfig*.json
-example/
+playground/
 .mocharc.js
 jest.config.js
 .prettierrc
