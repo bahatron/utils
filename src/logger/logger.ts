@@ -12,7 +12,6 @@ export function Logger(options: CreateLoggerOptions = {}) {
         id: _id,
         formatter = stringify,
         pretty: _pretty = false,
-        timestamp: _timestamp = () => new Date().toISOString(),
     } = options;
 
     let _observable = Observable();
@@ -23,11 +22,12 @@ export function Logger(options: CreateLoggerOptions = {}) {
         level: string;
         message?: string;
         context?: any;
-        timestamp?: CreateLoggerOptions["timestamp"];
     }): LogEntry {
         let { message, context, level } = params;
+        let timestamp = new Date();
+
         let entry = {
-            timestamp: _timestamp(),
+            timestamp,
             id: typeof _id == "function" ? _id() : _id,
             message:
                 typeof context === "string" && !message ? context : message,
@@ -36,18 +36,19 @@ export function Logger(options: CreateLoggerOptions = {}) {
             level,
         };
 
-        let print = _formatter(entry);
-
+        let formatted = _formatter(entry);
         try {
-            process.stdout.write(`${print}\n`);
+            process.stdout.write(`${formatted}\n`);
         } catch (err) {
-            console.log(print);
+            console.log(entry);
         }
 
         return entry;
     }
 
     return {
+        Logger,
+
         async flush() {
             await Promise.all(Array.from(_stack));
         },
@@ -62,7 +63,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             _observable.on(event, job);
         },
 
-        inspect(payload: any) {
+        inspect(payload: any): void {
             let print = `${red(
                 `type: ${Array.isArray(payload) ? "array" : typeof payload}`,
             )}${ymlFormatter(LogContext(payload))}\n`;
@@ -74,7 +75,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             }
         },
 
-        debug(payload: any, message?: string) {
+        debug(payload: any, message?: string): void {
             if (!_debug) return;
 
             let entry = _log({
@@ -86,7 +87,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             _observable.emit("debug", entry);
         },
 
-        info(payload: any, message?: string) {
+        info(payload: any, message?: string): void {
             let entry = _log({
                 level: ERROR_LEVEL.INFO,
                 message,
@@ -96,7 +97,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             _observable.emit("info", entry);
         },
 
-        warning(payload: any, message?: string) {
+        warning(payload: any, message?: string): void {
             let entry = _log({
                 level: ERROR_LEVEL.WARNING,
                 context: LogContext(payload),
@@ -106,7 +107,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
             _observable.emit("warning", entry);
         },
 
-        error(err: any, message?: string) {
+        error(err: any, message?: string): void {
             let entry = _log({
                 level: ERROR_LEVEL.ERROR,
                 message: message ?? err?.message,

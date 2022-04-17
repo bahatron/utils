@@ -1,4 +1,4 @@
-import { AsyncContext } from "../lib/async-context";
+import { AsyncContext, RunInContext } from "../lib/async-context";
 
 const TEST_ID = "id";
 
@@ -75,5 +75,41 @@ Promise.all(
             AsyncContext.set(TEST_ID, index);
 
             return return_async_sync(index);
+        }),
+);
+
+Array(10)
+    .fill(null)
+    .map((val, index) => {
+        RunInContext(
+            () => {
+                console.log({
+                    from: "sync_run_in_context",
+                    context: AsyncContext.get(TEST_ID),
+                    id: index,
+                });
+            },
+            {
+                [TEST_ID]: index,
+            },
+        );
+    });
+
+Promise.all(
+    Array(10)
+        .fill(null)
+        .map((val, index) => {
+            RunInContext(
+                async () => {
+                    console.log({
+                        from: "async_run_in_context",
+                        context: AsyncContext.get(TEST_ID),
+                        id: index,
+                    });
+                },
+                {
+                    [TEST_ID]: index,
+                },
+            );
         }),
 );

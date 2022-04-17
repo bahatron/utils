@@ -42,7 +42,7 @@ export function prettyFormatter({
             : ``;
     };
 
-    return `[${timestamp}] ${_level()}${_id()}${_message()}${_context()}`;
+    return `[${timestamp.toISOString()}] ${_level()}${_id()}${_message()}${_context()}`;
 }
 
 export function ymlFormatter(context: any, _level = 0): string {

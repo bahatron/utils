@@ -1,5 +1,5 @@
 export interface LogEntry {
-    timestamp: string | number;
+    timestamp: Date;
     level: string;
     id?: string;
     message?: string;
@@ -13,5 +13,4 @@ export interface CreateLoggerOptions {
     pretty?: boolean;
     id?: string | (() => string);
     formatter?: (entry: LogEntry) => string;
-    timestamp?: () => string | number;
 }
