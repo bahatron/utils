@@ -6,14 +6,14 @@ function __importAsyncHooks() {
         asyncHooks = require("async_hooks");
     } catch (err) {
         if (process.env.NODE_ENV !== "production") {
-            console.log(`async hooks not enabled on browser`);
+            console.log(`[dev] async hooks not enabled on browser`);
         }
     }
 }
 __importAsyncHooks();
 
 const store = new Map<number, Record<string, any>>();
-const _hook = asyncHooks?.createHook({
+const _hook = asyncHooks?.createHook?.({
     init: (asyncId: number, _: any, triggerAsyncId: number) => {
         if (store.has(triggerAsyncId)) {
             store.set(asyncId, store.get(triggerAsyncId)!);
@@ -27,7 +27,7 @@ const _hook = asyncHooks?.createHook({
     },
 });
 
-_hook?.enable();
+_hook?.enable?.();
 
 export const AsyncContext = {
     get(key: string): any | undefined {
