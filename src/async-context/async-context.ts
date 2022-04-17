@@ -30,7 +30,7 @@ const _hook = asyncHooks?.createHook({
 _hook?.enable();
 
 export const AsyncContext = {
-    get(key: string): void {
+    get(key: string): any | undefined {
         if (!asyncHooks || !store.has(asyncHooks.executionAsyncId())) {
             return undefined;
         }
