@@ -1,28 +1,26 @@
-// import asyncHooks from "async_hooks";
-let asyncHooks: any;
+const ASYNC_HOOKS = __importAsyncHooks();
 
 function __importAsyncHooks() {
-    if (typeof window === "undefined") {
+    if (typeof window !== "undefined") {
         if (process.env.NODE_ENV !== "production") {
-            console.log(`[dev] async hooks not enabled on browser`);
+            console.log(`[dev_warning] async context not enabled on browser`);
         }
         return;
     }
-    asyncHooks = require("async_hooks");
+    return require("async_hooks");
 }
-__importAsyncHooks();
 
-const store = new Map<number, Record<string, any>>();
-const _hook = asyncHooks?.createHook?.({
+const _store = new Map<number, Record<string, any>>();
+const _hook = ASYNC_HOOKS?.createHook?.({
     init: (asyncId: number, _: any, triggerAsyncId: number) => {
-        if (store.has(triggerAsyncId)) {
-            store.set(asyncId, store.get(triggerAsyncId)!);
+        if (_store.has(triggerAsyncId)) {
+            _store.set(asyncId, _store.get(triggerAsyncId)!);
         }
     },
 
     destroy: (asyncId: number) => {
-        if (store.has(asyncId)) {
-            store.delete(asyncId);
+        if (_store.has(asyncId)) {
+            _store.delete(asyncId);
         }
     },
 });
@@ -31,23 +29,23 @@ _hook?.enable?.();
 
 export const AsyncContext = {
     get(key: string): any | undefined {
-        if (!asyncHooks || !store.has(asyncHooks.executionAsyncId())) {
+        if (!ASYNC_HOOKS || !_store.has(ASYNC_HOOKS.executionAsyncId())) {
             return undefined;
         }
 
-        return store.get(asyncHooks.executionAsyncId())![key];
+        return _store.get(ASYNC_HOOKS.executionAsyncId())![key];
     },
 
     set(key: string, value: any): void {
-        if (!asyncHooks) {
+        if (!ASYNC_HOOKS) {
             return;
         }
 
         let newVal = {
-            ...store.get(asyncHooks.executionAsyncId()),
+            ..._store.get(ASYNC_HOOKS.executionAsyncId()),
             [key]: value,
         };
 
-        store.set(asyncHooks.executionAsyncId(), newVal);
+        _store.set(ASYNC_HOOKS.executionAsyncId(), newVal);
     },
 };
