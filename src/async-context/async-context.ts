@@ -2,13 +2,13 @@
 let asyncHooks: any;
 
 function __importAsyncHooks() {
-    try {
-        asyncHooks = require("async_hooks");
-    } catch (err) {
+    if (typeof window === "undefined") {
         if (process.env.NODE_ENV !== "production") {
             console.log(`[dev] async hooks not enabled on browser`);
         }
+        return;
     }
+    asyncHooks = require("async_hooks");
 }
 __importAsyncHooks();
 
