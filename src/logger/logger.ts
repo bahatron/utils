@@ -37,10 +37,11 @@ export function Logger(options: CreateLoggerOptions = {}) {
         };
 
         let formatted = _formatter(entry);
+
         try {
             process.stdout.write(`${formatted}\n`);
         } catch (err) {
-            console.log(entry);
+            console.log(formatted);
         }
 
         return entry;
