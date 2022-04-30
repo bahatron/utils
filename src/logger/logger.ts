@@ -29,11 +29,11 @@ export function Logger(options: CreateLoggerOptions = {}) {
         let entry = {
             timestamp,
             id: typeof _id == "function" ? _id() : _id,
+            level,
             message:
                 typeof context === "string" && !message ? context : message,
             context:
                 typeof context === "string" && !message ? undefined : context,
-            level,
         };
 
         let formatted = _formatter(entry);
