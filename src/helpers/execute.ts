@@ -1,10 +1,8 @@
-import { RunInContext } from "../async-context/run-in-context";
-
 export function execute(
     handler: () => void,
-    context: Record<string, string> = {}
-) {
-    RunInContext(async () => {
+    context: Record<string, string> = {},
+): void {
+    let _handler = async () => {
         try {
             await handler();
             process.exit(0);
@@ -12,5 +10,7 @@ export function execute(
             console.error(err);
             process.exit(1);
         }
-    }, context);
+    };
+
+    _handler();
 }

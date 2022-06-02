@@ -4,4 +4,4 @@ export * as Error from "./error";
 export * as Helpers from "./helpers";
 export * as Types from "./types";
 export * as Validator from "./validator";
-export * as AsyncContext from "./async-context";
+export * as Context from "./context";
