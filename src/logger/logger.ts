@@ -14,7 +14,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
         pretty: _pretty = false,
     } = options;
 
-    let _observable = Observable();
+    let _bus = Observable();
     let _formatter = _pretty ? prettyFormatter : formatter;
     let _stack: Set<Function> = new Set();
 
@@ -26,23 +26,19 @@ export function Logger(options: CreateLoggerOptions = {}) {
         let { message, context, level } = params;
         let timestamp = new Date();
 
+        let shouldLogContext = Boolean(
+            typeof ["string", "number"].includes(typeof context) && !message,
+        );
+
         let entry = {
             timestamp,
             id: typeof _id == "function" ? _id() : _id,
             level,
-            message:
-                typeof context === "string" && !message ? context : message,
-            context:
-                typeof context === "string" && !message ? undefined : context,
+            message: shouldLogContext ? context : message,
+            context: shouldLogContext ? undefined : context,
         };
 
-        let formatted = _formatter(entry);
-
-        try {
-            process.stdout.write(`${formatted}\n`);
-        } catch (err) {
-            console.log(formatted);
-        }
+        process.stdout.write(`${_formatter(entry)}\n`);
 
         return entry;
     }
@@ -61,7 +57,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
                 _stack.delete(job);
             };
 
-            _observable.on(event, job);
+            _bus.on(event, job);
         },
 
         inspect(payload: any): void {
@@ -85,7 +81,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
                 context: LogContext(payload),
             });
 
-            _observable.emit("debug", entry);
+            _bus.emit("debug", entry);
         },
 
         info(payload: any, message?: string): void {
@@ -95,7 +91,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
                 context: LogContext(payload),
             });
 
-            _observable.emit("info", entry);
+            _bus.emit("info", entry);
         },
 
         warning(payload: any, message?: string): void {
@@ -105,7 +101,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
                 message: message ?? payload?.message,
             });
 
-            _observable.emit("warning", entry);
+            _bus.emit("warning", entry);
         },
 
         error(err: any, message?: string): void {
@@ -115,7 +111,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
                 context: LogContext(err),
             });
 
-            _observable.emit("error", entry);
+            _bus.emit("error", entry);
         },
     };
 }

@@ -1,7 +1,17 @@
 export function LogContext(payload: any) {
     let weakSet = new WeakSet();
-    function recursiveReduce(payload: any): any {
-        if (payload?.isAxiosError) {
+
+    const recursiveReduce = (payload: any): any => {
+        if (payload instanceof Error) {
+            return {
+                ...payload,
+                stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
+            };
+        } else if (payload instanceof Date) {
+            return payload.toISOString();
+        } else if (Array.isArray(payload)) {
+            return payload.map(recursiveReduce);
+        } else if (payload?.isAxiosError) {
             return {
                 req: {
                     headers: payload.config?.headers,
@@ -15,13 +25,6 @@ export function LogContext(payload: any) {
                     data: payload.response?.data,
                 },
             };
-        } else if (payload instanceof Error) {
-            return {
-                ...payload,
-                stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
-            };
-        } else if (Array.isArray(payload)) {
-            return payload.map(recursiveReduce);
         } else if (["object"].includes(typeof payload) && Boolean(payload)) {
             if (weakSet.has(payload)) return `[Reference]`;
 
@@ -35,7 +38,7 @@ export function LogContext(payload: any) {
         } else {
             return payload;
         }
-    }
+    };
 
     return recursiveReduce(payload);
 }
