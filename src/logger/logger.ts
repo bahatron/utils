@@ -27,7 +27,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
         let timestamp = new Date();
 
         let shouldLogContext = Boolean(
-            typeof ["string", "number"].includes(typeof context) && !message,
+            ["string", "number"].includes(typeof context) && !message,
         );
 
         let entry = {
