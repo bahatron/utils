@@ -15,6 +15,7 @@ const LOGGER_TEST_PAYLOAD = {
     nulleo: null,
     undefo: undefined,
     bool: true,
+    date: new Date(),
     err: new Error(),
     array: ["hello", new Error("error inside array")],
     banana: "pijama",
