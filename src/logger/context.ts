@@ -7,7 +7,7 @@ export function LogContext(payload: any) {
                 ...payload,
                 stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
             };
-        } else if (payload?.toISOString) {
+        } else if (typeof payload?.toISOString === "function") {
             return payload.toISOString();
         } else if (Array.isArray(payload)) {
             return payload.map(recursiveReduce);
