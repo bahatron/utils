@@ -7,6 +7,8 @@ export function LogContext(payload: any) {
                 ...payload,
                 stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
             };
+        } else if (typeof payload === "bigint") {
+            return payload.toString();
         } else if (typeof payload?.toISOString === "function") {
             return payload.toISOString();
         } else if (Array.isArray(payload)) {
