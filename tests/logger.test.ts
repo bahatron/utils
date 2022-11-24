@@ -20,6 +20,7 @@ const LOGGER_TEST_PAYLOAD = {
     array: ["hello", new Error("error inside array")],
     banana: "pijama",
     func: () => `this is a function`,
+    bigint: BigInt("12345678901234567890"),
 };
 
 describe("pretty print", () => {
@@ -85,7 +86,7 @@ describe("error logging", () => {
                 morty: { rick: "sanchez" },
                 req_id: "c-137",
             },
-            "generic"
+            "generic",
         );
     });
 });
@@ -128,7 +129,7 @@ describe("nested context building", () => {
             {
                 ...LOGGER_TEST_PAYLOAD,
             },
-            "lorem ipsum"
+            "lorem ipsum",
         );
 
         logger.info(function funcWithName() {

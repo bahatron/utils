@@ -1,10 +1,15 @@
-export type Handler<T> = (payload: T) => void;
+export type Handler<T = any> = (payload: T) => void;
+
+export interface ObservableOptions {
+    onEvent?: <T = any>(event: string, payload: T) => void;
+}
 
 export type Observable = ReturnType<typeof Observable>;
-export function Observable<E extends string, T = any>() {
-    const _handlers: Record<string, Set<Handler<T>>> = {};
 
-    function getHandler(event: E) {
+export function Observable({ onEvent }: ObservableOptions = {}) {
+    const _handlers: Record<string, Set<Handler>> = {};
+
+    function getHandler(event: string) {
         if (!_handlers[event]) {
             _handlers[event] = new Set();
         }
@@ -13,13 +18,15 @@ export function Observable<E extends string, T = any>() {
     }
 
     let observer = {
-        emit(event: E, payload: T): void {
-            Array.from(getHandler(event)).map((handler) => {
+        emit(event: string, payload: any): void {
+            Array.from(getHandler(event)).forEach((handler) => {
                 return handler(payload);
             });
+
+            onEvent?.(event, payload);
         },
 
-        on(event: E, handler: Handler<T>): void {
+        on(event: string, handler: Handler): void {
             if (getHandler(event).has(handler)) {
                 return;
             }
@@ -27,9 +34,10 @@ export function Observable<E extends string, T = any>() {
             getHandler(event).add(handler);
         },
 
-        once(event: E, handler: Handler<T>): void {
-            let onTrigger: Handler<T> = async (payload) => {
-                await handler(payload);
+        once(event: string, handler: Handler): void {
+            let onTrigger: Handler = (payload) => {
+                handler(payload);
+                onEvent?.(event, payload);
 
                 getHandler(event).delete(onTrigger);
             };
@@ -37,7 +45,7 @@ export function Observable<E extends string, T = any>() {
             getHandler(event).add(onTrigger);
         },
 
-        off(event: E, handler: Handler<T>): void {
+        off(event: string, handler: Handler): void {
             if (getHandler(event).has(handler)) {
                 getHandler(event).delete(handler);
             }

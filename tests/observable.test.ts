@@ -13,4 +13,19 @@ describe("Observable", () => {
             obs.emit("event", "");
         });
     });
+
+    it("can register a generic event listener", async () => {
+        return new Promise<void>((resolve, reject) => {
+            setTimeout(reject, 100);
+
+            let obs = Observable({
+                onEvent: (event, payload) => {
+                    console.log(`on event triggered`, { event, payload });
+                    resolve();
+                },
+            });
+
+            obs.emit(`event`, { rick: "sanchez" });
+        });
+    });
 });
