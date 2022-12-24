@@ -1,13 +1,10 @@
 export type Handler<T = any> = (payload: T) => void;
-
-export interface ObservableOptions {
-    onEvent?: <T = any>(event: string, payload: T) => void;
-}
+export type OnEventHandler<T = any> = (event: string, payload: T) => void;
 
 export type Observable = ReturnType<typeof Observable>;
-
-export function Observable({ onEvent }: ObservableOptions = {}) {
+export function Observable() {
     const _handlers: Record<string, Set<Handler>> = {};
+    const _globalEventHandlers: Set<OnEventHandler> = new Set();
 
     function getHandler(event: string) {
         if (!_handlers[event]) {
@@ -23,7 +20,7 @@ export function Observable({ onEvent }: ObservableOptions = {}) {
                 return handler(payload);
             });
 
-            onEvent?.(event, payload);
+            _globalEventHandlers.forEach((handler) => handler(event, payload));
         },
 
         on(event: string, handler: Handler): void {
@@ -34,10 +31,17 @@ export function Observable({ onEvent }: ObservableOptions = {}) {
             getHandler(event).add(handler);
         },
 
+        onEvent(handler: OnEventHandler): void {
+            if (_globalEventHandlers.has(handler)) {
+                return;
+            }
+
+            _globalEventHandlers.add(handler);
+        },
+
         once(event: string, handler: Handler): void {
             let onTrigger: Handler = (payload) => {
                 handler(payload);
-                onEvent?.(event, payload);
 
                 getHandler(event).delete(onTrigger);
             };

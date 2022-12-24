@@ -18,11 +18,11 @@ describe("Observable", () => {
         return new Promise<void>((resolve, reject) => {
             setTimeout(reject, 100);
 
-            let obs = Observable({
-                onEvent: (event, payload) => {
-                    console.log(`on event triggered`, { event, payload });
-                    resolve();
-                },
+            let obs = Observable();
+
+            obs.onEvent((event, payload) => {
+                console.log(`on event triggered`, { event, payload });
+                resolve();
             });
 
             obs.emit(`event`, { rick: "sanchez" });
