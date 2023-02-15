@@ -1,46 +1,46 @@
-export function LogContext(payload: any) {
+export function LogContext(context: any) {
     let weakSet = new WeakSet();
 
-    const recursiveReduce = (payload: any): any => {
-        if (payload instanceof Error) {
+    const recursiveReduce = (context: any): any => {
+        if (context instanceof Error) {
             return {
-                ...payload,
-                stack: payload?.stack?.split(`\n`).map((entry) => entry.trim()),
+                ...context,
+                stack: context?.stack?.split(`\n`).map((entry) => entry.trim()),
             };
-        } else if (typeof payload === "bigint") {
-            return Number(payload);
-        } else if (typeof payload?.toISOString === "function") {
-            return payload.toISOString();
-        } else if (Array.isArray(payload)) {
-            return payload.map(recursiveReduce);
-        } else if (payload?.isAxiosError) {
+        } else if (typeof context === "bigint") {
+            return Number(context);
+        } else if (typeof context?.toISOString === "function") {
+            return context.toISOString();
+        } else if (Array.isArray(context)) {
+            return context.map(recursiveReduce);
+        } else if (context?.isAxiosError) {
             return {
                 req: {
-                    headers: payload.config?.headers,
-                    url: payload.config?.url,
-                    method: payload.config?.method,
-                    params: payload.config?.params,
-                    data: payload.config?.data,
+                    headers: context.config?.headers,
+                    url: context.config?.url,
+                    method: context.config?.method,
+                    params: context.config?.params,
+                    data: context.config?.data,
                 },
                 res: {
-                    status: payload.response?.status,
-                    data: payload.response?.data,
+                    status: context.response?.status,
+                    data: context.response?.data,
                 },
             };
-        } else if (["object"].includes(typeof payload) && Boolean(payload)) {
-            if (weakSet.has(payload)) return `[Reference]`;
+        } else if (["object"].includes(typeof context) && Boolean(context)) {
+            if (weakSet.has(context)) return `[Reference]`;
 
-            weakSet.add(payload);
-            return Object.entries(payload).reduce((aggregate, [key, value]) => {
+            weakSet.add(context);
+            return Object.entries(context).reduce((aggregate, [key, value]) => {
                 aggregate[key] = recursiveReduce(value);
                 return aggregate;
             }, {} as Record<string | number, any>);
-        } else if (typeof payload === "function") {
-            return `[Function: ${(payload as Function).name || undefined}]`;
+        } else if (typeof context === "function") {
+            return `[Function: ${(context as Function).name || undefined}]`;
         } else {
-            return payload;
+            return context;
         }
     };
 
-    return recursiveReduce(payload);
+    return recursiveReduce(context);
 }

@@ -118,7 +118,7 @@ export function UnprocessableEntity(
     context?: Exception["context"],
     message: string = "Unprocessable Entity",
 ): Exception {
-    return new Exception("UnprocessableEntity", message, 429, context);
+    return new Exception("UnprocessableEntity", message, 422, context);
 }
 
 export function TooManyRequests(

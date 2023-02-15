@@ -9,6 +9,6 @@ export const RunInContext = <T = any>(
             AsyncContext.set(key, value);
         });
 
-        Promise.resolve(func()).then(resolve);
+        return Promise.resolve(func()).then(resolve);
     });
 };
