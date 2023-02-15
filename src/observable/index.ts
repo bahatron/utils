@@ -1,7 +1,7 @@
 export type Handler<T = any> = (payload: T) => void;
 export type OnEventHandler<T = any> = (event: string, payload: T) => void;
-
 export type Observable = ReturnType<typeof Observable>;
+
 export function Observable() {
     const _handlers: Record<string, Set<Handler>> = {};
     const _globalEventHandlers: Set<OnEventHandler> = new Set();
@@ -14,8 +14,8 @@ export function Observable() {
         return _handlers[event];
     }
 
-    let observer = {
-        emit(event: string, payload: any): void {
+    return {
+        emit(event: string, payload?: any): void {
             Array.from(getHandler(event)).forEach((handler) => {
                 return handler(payload);
             });
@@ -24,17 +24,13 @@ export function Observable() {
         },
 
         on(event: string, handler: Handler): void {
-            if (getHandler(event).has(handler)) {
-                return;
-            }
+            if (getHandler(event).has(handler)) return;
 
             getHandler(event).add(handler);
         },
 
         onEvent(handler: OnEventHandler): void {
-            if (_globalEventHandlers.has(handler)) {
-                return;
-            }
+            if (_globalEventHandlers.has(handler)) return;
 
             _globalEventHandlers.add(handler);
         },
@@ -53,10 +49,6 @@ export function Observable() {
             if (getHandler(event).has(handler)) {
                 getHandler(event).delete(handler);
             }
-
-            return;
         },
     } as const;
-
-    return observer;
 }
