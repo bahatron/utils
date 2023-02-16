@@ -1,4 +1,4 @@
-import { Logger } from "../src/logger";
+import { Logger } from "../src";
 
 const LOGGER_TEST_PAYLOAD = {
     foo: "bar",
@@ -24,7 +24,7 @@ const LOGGER_TEST_PAYLOAD = {
 };
 
 describe("pretty print", () => {
-    const _logger = Logger({ pretty: true });
+    const _logger = Logger.Logger({ pretty: true });
 
     it("pretty debug", async () => {
         return new Promise<void>((resolve) => {
@@ -64,7 +64,7 @@ describe("pretty print", () => {
 });
 
 describe("no pretty settings", () => {
-    let _logger = Logger({ pretty: false, id: "[no colours]" });
+    let _logger = Logger.Logger({ pretty: false, id: "[no colours]" });
 
     it("does not display colours", () => {
         let payload = [{ rick: "sanchez" }, "hello"] as const;
@@ -74,7 +74,7 @@ describe("no pretty settings", () => {
 });
 
 describe("error logging", () => {
-    let logger = Logger();
+    let logger = Logger.Logger();
 
     it("formats normal errors", () => {
         logger.error(new TypeError("an error"), "Error instance");
@@ -92,7 +92,7 @@ describe("error logging", () => {
 });
 
 describe("inspect", () => {
-    let logger = Logger({
+    let logger = Logger.Logger({
         pretty: true,
         id: "inspect_logger",
     });
@@ -120,7 +120,7 @@ describe("inspect", () => {
 
 describe("nested context building", () => {
     it("parses nested object keys into format", () => {
-        let logger = Logger({
+        let logger = Logger.Logger({
             pretty: true,
             id: "nested context parsing",
         });
