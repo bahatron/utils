@@ -1,6 +1,6 @@
 import { stringify } from "../helpers/stringify";
 import { ERROR_LEVEL } from "./constants";
-import { LogEntry } from "./interfaces";
+import { LogEntry, LoggerLevel } from "./interfaces";
 
 export const green = (text: string) => `\x1b[32m${text}\x1b[0m`;
 export const blue = (text: string) => `\x1b[34m${text}\x1b[0m`;
@@ -8,6 +8,12 @@ export const orange = (text: string) => `\x1b[33m${text}\x1b[0m`;
 export const red = (text: string) => `\x1b[31m${text}\x1b[0m`;
 export const cyan = (text: string) => `\x1b[36m${text}\x1b[0m`;
 
+const ERROR_LEVEL_COLOR = {
+    [ERROR_LEVEL.DEBUG]: blue,
+    [ERROR_LEVEL.INFO]: green,
+    [ERROR_LEVEL.WARNING]: orange,
+    [ERROR_LEVEL.ERROR]: red,
+};
 export function prettyFormatter({
     timestamp,
     message,
@@ -16,18 +22,7 @@ export function prettyFormatter({
     context,
 }: LogEntry) {
     function _level() {
-        switch (level) {
-            case ERROR_LEVEL.DEBUG:
-                return blue(level);
-            case ERROR_LEVEL.INFO:
-                return green(level);
-            case ERROR_LEVEL.WARNING:
-                return orange(level);
-            case ERROR_LEVEL.ERROR:
-                return red(level);
-            default:
-                return level;
-        }
+        return ERROR_LEVEL_COLOR[level as LoggerLevel](level) ?? level;
     }
 
     let _message = () => (message ? ` ${cyan(message)}` : ``);

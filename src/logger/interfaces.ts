@@ -1,12 +1,16 @@
+import { ERROR_LEVEL } from "./constants";
+
+export type LoggerEvent = "debug" | "info" | "warning" | "error";
+
+export type LoggerLevel = keyof typeof ERROR_LEVEL;
+
 export interface LogEntry {
     timestamp: Date;
-    level: string;
+    level: LoggerLevel;
     id?: string;
     message?: string;
     context?: any;
 }
-
-export type LoggerEvent = "debug" | "info" | "warning" | "error";
 
 export interface CreateLoggerOptions {
     debug?: boolean;

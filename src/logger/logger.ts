@@ -1,5 +1,10 @@
 import { stringify } from "../helpers/stringify";
-import { CreateLoggerOptions, LogEntry, LoggerEvent } from "./interfaces";
+import {
+    CreateLoggerOptions,
+    LogEntry,
+    LoggerEvent,
+    LoggerLevel,
+} from "./interfaces";
 import { Handler, Observable } from "../observable";
 import { red, prettyFormatter, ymlFormatter } from "./formatters";
 import { ERROR_LEVEL } from "./constants";
@@ -19,7 +24,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
     let _stack: Set<Function> = new Set();
 
     function _log(params: {
-        level: string;
+        level: LoggerLevel;
         message?: string;
         context?: any;
     }): LogEntry {
