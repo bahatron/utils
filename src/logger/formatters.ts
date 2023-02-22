@@ -41,9 +41,9 @@ export function prettyFormatter({
     return `[${timestamp.toISOString()}] ${_level()}${_id()}${_message()}${_context()}`;
 }
 
-export function ymlFormatter(context: any, _level = 0): string {
+export function ymlFormatter(context: any, __level = 0): string {
     function indentation() {
-        return `\n${" ".repeat((_level + 1) * 4)}`;
+        return `\n${" ".repeat((__level + 1) * 4)}`;
     }
     let valuePrint = (val: any) => (typeof val === "string" ? `"${val}"` : val);
     if (hasEntries(context)) {
@@ -51,7 +51,7 @@ export function ymlFormatter(context: any, _level = 0): string {
             return carry.concat(
                 `${indentation()}${cyan(key)}: ${
                     hasEntries(value)
-                        ? ymlFormatter(value, _level + 1)
+                        ? ymlFormatter(value, __level + 1)
                         : valuePrint(value)
                 }`,
             );
