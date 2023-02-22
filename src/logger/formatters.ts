@@ -14,6 +14,7 @@ const ERROR_LEVEL_COLOR = {
     [ERROR_LEVEL.WARNING]: orange,
     [ERROR_LEVEL.ERROR]: red,
 };
+
 export function prettyFormatter({
     timestamp,
     message,
