@@ -10,15 +10,15 @@ export function LogContext(context: any) {
         } else if (typeof context === "bigint") {
             return Number(context);
         } else if (typeof context?.toISOString === "function") {
-            return context.toISOString();
+            return `[Date: ${context.toISOString()}]`;
         } else if (Array.isArray(context)) {
             return context.map(recursiveReduce);
         } else if (context?.isAxiosError) {
             return {
                 req: {
                     headers: context.config?.headers,
-                    url: context.config?.url,
                     method: context.config?.method,
+                    url: context.config?.url,
                     params: context.config?.params,
                     data: context.config?.data,
                 },
