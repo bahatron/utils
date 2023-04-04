@@ -10,7 +10,7 @@ export function LogContext(context: any) {
         } else if (typeof context === "bigint") {
             return Number(context);
         } else if (typeof context?.toISOString === "function") {
-            return `[Date: ${context.toISOString()}]`;
+            return `[Date]: ${context.toISOString()}`;
         } else if (Array.isArray(context)) {
             return context.map(recursiveReduce);
         } else if (context?.isAxiosError) {
