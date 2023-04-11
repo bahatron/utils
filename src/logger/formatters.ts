@@ -42,14 +42,13 @@ export function prettyFormatter({
 }
 
 export function ymlFormatter(context: any, __level = 0): string {
-    function indentation() {
-        return `\n${" ".repeat((__level + 1) * 4)}`;
-    }
+    let indentation = () => `\n${" ".repeat((__level + 1) * 4)}`;
     let valuePrint = (val: any) => (typeof val === "string" ? `"${val}"` : val);
+
     if (hasEntries(context)) {
         return Object.entries(context).reduce((carry, [key, value]) => {
             return carry.concat(
-                `${indentation()}${cyan(key)}: ${
+                `${indentation()}${key}: ${
                     hasEntries(value)
                         ? ymlFormatter(value, __level + 1)
                         : valuePrint(value)
@@ -61,8 +60,10 @@ export function ymlFormatter(context: any, __level = 0): string {
 }
 
 function hasEntries(payload: any) {
-    return (
-        (typeof payload === "object" && Boolean(payload)) ||
-        Array.isArray(payload)
-    );
+    let tests = [
+        (item: any) => typeof item === "object" && Boolean(item),
+        (item: any) => Array.isArray(item),
+    ];
+
+    return tests.some((handler) => handler(payload));
 }
