@@ -1,4 +1,21 @@
 export function LogContext(context: any) {
+    if (context?.isAxiosError) {
+        return {
+            req: {
+                headers: context.config?.headers,
+                method: context.config?.method,
+                url: context.config?.url,
+                params: context.config?.params,
+                data: context.config?.data,
+            },
+            res: {
+                headers: context.response?.headers,
+                status: context.response?.status,
+                data: context.response?.data,
+            },
+        };
+    }
+
     let weakSet = new WeakSet();
 
     const recursiveReduce = (context: any): any => {
@@ -13,20 +30,6 @@ export function LogContext(context: any) {
             return `[Date]: ${context.toISOString()}`;
         } else if (Array.isArray(context)) {
             return context.map(recursiveReduce);
-        } else if (context?.isAxiosError) {
-            return {
-                req: {
-                    headers: context.config?.headers,
-                    method: context.config?.method,
-                    url: context.config?.url,
-                    params: context.config?.params,
-                    data: context.config?.data,
-                },
-                res: {
-                    status: context.response?.status,
-                    data: context.response?.data,
-                },
-            };
         } else if (["object"].includes(typeof context) && Boolean(context)) {
             if (weakSet.has(context)) return `[Reference]`;
 
