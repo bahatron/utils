@@ -5,3 +5,4 @@ export * from "./get-env";
 export * from "./stringify";
 export * from "./parse";
 export * from "./retry";
+export * from "./time";
