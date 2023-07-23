@@ -1,11 +1,9 @@
 {
-    "name":"playground",
+    "name": "playground",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
-    "scripts": {
-        "command-test": "ts-node ./command-test.ts"
-    },
+    "scripts": {},
     "author": "",
     "license": "ISC",
     "dependencies": {

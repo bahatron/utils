@@ -1,9 +1,6 @@
 import fastSafeStringify from "fast-safe-stringify";
 
-/**
- * @deprecated use stringifyJson instead
- */
-export function stringify(
+export function jsonStringify(
     value: any,
     replacer: ((key: string, value: any) => any) | null | undefined = null,
     spaces?: number,
@@ -13,5 +10,7 @@ export function stringify(
         : fastSafeStringify(value, replacer ?? undefined, spaces);
 }
 
-// interface migration
-export const stringifyJson = stringify;
+/**
+ * @deprecated use stringifyJson instead
+ */
+export { jsonStringify as stringify };

@@ -1,8 +1,7 @@
 /**
  * @description Unlike the default JSON.parse, parse will return undefined instead of throwing an error
- * @deprecated use parseJson
  */
-export function parse<T = any>(payload: any): T | T[] | undefined {
+export function jsonParse<T = any>(payload: any): T | T[] | undefined {
     try {
         return typeof payload === "string" ? JSON.parse(payload) : payload;
     } catch (err) {
@@ -11,6 +10,6 @@ export function parse<T = any>(payload: any): T | T[] | undefined {
 }
 
 /**
- * @description Unlike the default JSON.parse, parse will return undefined instead of throwing an error
+ * @deprecated use parseJson
  */
-export const parseJson = parse;
+export { jsonParse as parse };

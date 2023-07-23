@@ -1,4 +1,4 @@
-import { AsyncContext, RunInContext } from "../lib/async-context";
+import { AsyncContext, RunInContext } from "@bahatron/utils/lib/context";
 
 const TEST_ID = "id";
 
