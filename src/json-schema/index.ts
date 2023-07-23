@@ -1,19 +1,16 @@
-// export * from "./schema";
-// export * from "./validator";
-
 import { TSchema, Type, Static } from "@sinclair/typebox";
 import jsonschema from "jsonschema";
-export { TSchema, Static };
+export { TSchema, Static, JsonSchemaError };
 
 const validator = new jsonschema.Validator();
 
-interface ValidationError {
+interface JsonSchemaError {
     location: (string | number)[];
     error: string;
     type: string;
 }
 
-function validate(val: any, schema: TSchema): ValidationError[] {
+function validate(val: any, schema: TSchema): JsonSchemaError[] {
     let result = validator.validate(val, schema);
 
     console.log(result.errors);
@@ -49,4 +46,4 @@ function ExtendedTypeBox() {
     return extended as typeof Type & typeof extension;
 }
 
-export const JsonSchema = ExtendedTypeBox();
+export const Schema = ExtendedTypeBox();
