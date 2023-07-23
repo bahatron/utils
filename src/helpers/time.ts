@@ -1,8 +1,13 @@
 import moment from "moment";
 
+export interface TimeOptions {
+    units: moment.unitOfTime.Diff;
+}
 export async function time(
     handler: Function,
-    options: { units: moment.unitOfTime.Diff },
+    options: TimeOptions = {
+        units: "seconds",
+    },
 ) {
     let start = moment();
 

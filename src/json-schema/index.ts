@@ -1,4 +1,12 @@
-import { TSchema, Static, ExtendedTypeBuilder, Type } from "@sinclair/typebox";
+import {
+    TSchema,
+    Static,
+    ExtendedTypeBuilder,
+    Type,
+    TUnion,
+    TNull,
+    TUnsafe,
+} from "@sinclair/typebox";
 import jsonschema from "jsonschema";
 export { TSchema, Static, JsonSchemaError };
 
@@ -26,11 +34,11 @@ function validate(val: any, schema: TSchema): JsonSchemaError[] {
     });
 }
 
-function StringEnum<T extends string[]>(values: [...T]) {
+function StringEnum<T extends string[]>(values: [...T]): TUnsafe<T[number]> {
     return Type.Unsafe<T[number]>({ type: "string", enum: values });
 }
 
-function Nullable<T extends TSchema>(type: T) {
+function Nullable<T extends TSchema>(type: T): TUnion<[T, TNull]> {
     return Type.Union([type, Type.Null()]);
 }
 
