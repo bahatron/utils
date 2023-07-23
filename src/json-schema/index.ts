@@ -7,8 +7,8 @@ import {
     TNull,
     TUnsafe,
 } from "@sinclair/typebox";
-import jsonschema from "jsonschema";
-export { TSchema, Static, JsonSchemaError };
+import jsonschema, { Schema as JsonSchema } from "jsonschema";
+export { TSchema, Static, JsonSchemaError, JsonSchema };
 
 const validator = new jsonschema.Validator();
 
@@ -20,8 +20,6 @@ interface JsonSchemaError {
 
 function validate(val: any, schema: TSchema): JsonSchemaError[] {
     let result = validator.validate(val, schema);
-
-    console.log(result.errors);
 
     if (!result.errors.length) return [];
 
