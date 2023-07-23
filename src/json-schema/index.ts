@@ -1,9 +1,9 @@
 import { TSchema, Type } from "@sinclair/typebox";
-export { Static } from "@sinclair/typebox";
+export { Static, Type } from "@sinclair/typebox";
 import jsonschema from "jsonschema";
 const validator = new jsonschema.Validator();
 
-interface ValidationError {
+export interface ValidationError {
     location: (string | number)[];
     error: string;
     type: string;
