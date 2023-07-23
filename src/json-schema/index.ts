@@ -1,4 +1,4 @@
-import { TSchema, Type, Static } from "@sinclair/typebox";
+import { TSchema, Static, ExtendedTypeBuilder, Type } from "@sinclair/typebox";
 import jsonschema from "jsonschema";
 export { TSchema, Static, JsonSchemaError };
 
@@ -34,7 +34,11 @@ function Nullable<T extends TSchema>(type: T) {
     return Type.Union([type, Type.Null()]);
 }
 
-function ExtendedTypeBox() {
+function ExtendedTypeBox(): ExtendedTypeBuilder & {
+    StringEnum: typeof StringEnum;
+    Nullable: typeof Nullable;
+    validate: typeof validate;
+} {
     let extension = {
         StringEnum,
         Nullable,
@@ -43,7 +47,7 @@ function ExtendedTypeBox() {
 
     let extended = Object.setPrototypeOf(extension, Type);
 
-    return extended as typeof Type & typeof extension;
+    return extended;
 }
 
 export const Schema = ExtendedTypeBox();
