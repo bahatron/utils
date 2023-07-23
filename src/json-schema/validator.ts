@@ -1,4 +1,4 @@
-import { TSchema } from "@sinclair/typebox";
+import { TSchema } from "./schema";
 import jsonschema from "jsonschema";
 
 const validator = new jsonschema.Validator();

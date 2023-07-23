@@ -5,4 +5,4 @@ export * as Helpers from "./helpers";
 export * as Types from "./types";
 export * as Validator from "./validator";
 export * as Context from "./context";
-export * from "./json-schema";
+export * as JsonSchema from "./json-schema";

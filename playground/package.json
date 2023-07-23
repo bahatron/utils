@@ -7,7 +7,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@bahatron/utils": "file:../",
+        "@bahatron/utils": "file:../lib",
         "@types/express": "^4.17.13",
         "@types/pino": "^6.3.9",
         "axios": "^0.21.1",
