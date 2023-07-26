@@ -43,7 +43,7 @@ export function prettyFormatter({
 
 export function ymlFormatter(context: any, __level = 0): string {
     let indentation = () => `\n${" ".repeat((__level + 1) * 4)}`;
-    let valuePrint = (val: any) => (typeof val === "string" ? `"${val}"` : val);
+    let valuePrint = (val: any) => `${val}`;
 
     if (hasEntries(context)) {
         return Object.entries(context).reduce((carry, [key, value]) => {
