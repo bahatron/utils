@@ -21,7 +21,7 @@ function Email() {
 }
 
 function DateExtended() {
-    return Type.Union([Type.Date(), Type.String({ format: "date-time" })]);
+    return Type.Union([Type.String({ format: "date-time" }), Type.Date()]);
 }
 
 function ExtendedTypeBox() {
