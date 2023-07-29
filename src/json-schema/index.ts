@@ -7,30 +7,8 @@ import {
     TNull,
     TUnsafe,
 } from "@sinclair/typebox";
-import jsonschema, { Schema as JsonSchema } from "jsonschema";
-export { TSchema, Static, JsonSchemaError, JsonSchema };
-
-const validator = new jsonschema.Validator();
-
-interface JsonSchemaError {
-    location: (string | number)[];
-    error: string;
-    type: string;
-}
-
-function validate(val: any, schema: TSchema): JsonSchemaError[] {
-    let result = validator.validate(val, schema);
-
-    if (!result.errors.length) return [];
-
-    return result.errors.map((err) => {
-        return {
-            location: err.path,
-            error: err.message,
-            type: err.name,
-        };
-    });
-}
+import { validate } from "./validator";
+export { TSchema as JsonSchema };
 
 function StringEnum<T extends string[]>(values: [...T]): TUnsafe<T[number]> {
     return Type.Unsafe<T[number]>({ type: "string", enum: values });
@@ -40,20 +18,16 @@ function Nullable<T extends TSchema>(type: T): TUnion<[T, TNull]> {
     return Type.Union([type, Type.Null()]);
 }
 
-function ExtendedTypeBox(): ExtendedTypeBuilder & {
-    StringEnum: typeof StringEnum;
-    Nullable: typeof Nullable;
-    validate: typeof validate;
-} {
+function ExtendedTypeBox() {
     let extension = {
+        validate,
         StringEnum,
         Nullable,
-        validate,
     };
 
     let extended = Object.setPrototypeOf(extension, Type);
 
-    return extended;
+    return extended as typeof extension & ExtendedTypeBuilder;
 }
 
 export const Schema = ExtendedTypeBox();
