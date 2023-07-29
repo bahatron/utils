@@ -1,14 +1,13 @@
 import { TSchema, Static } from "@sinclair/typebox";
-import jsonschema from "jsonschema";
+import jsonschema, { Schema } from "jsonschema";
 import { ValidationFailed } from "../error";
-
-const validator = new jsonschema.Validator();
 
 interface JsonSchemaError {
     path: (string | number)[];
     error: string;
     type: string;
 }
+const validator = new jsonschema.Validator();
 
 /**
  * @description Returns the object if it's valid, Throws an exception if there are validation errors
