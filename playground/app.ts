@@ -3,7 +3,7 @@ import express from "express";
 import { AsyncContext } from "../lib/context";
 import { JsonSchema } from "@bahatron/utils";
 
-let app = express();
+export const app = express();
 
 app.use((req, res, next) => {
     let uuid = randomUUID();
@@ -40,5 +40,3 @@ app.use((req, res, next) => {
 app.get("/", (req, res, next) => {
     res.send("hello");
 });
-
-app.listen(3000, () => console.log(`server running`));

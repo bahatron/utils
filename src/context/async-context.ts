@@ -1,14 +1,13 @@
-const ASYNC_HOOKS = __importAsyncHooks();
+import ASYNC_HOOKS from "async_hooks";
 
-function __importAsyncHooks() {
-    if (typeof window !== "undefined") {
-        if (process.env.NODE_ENV !== "production") {
-            console.log(`[dev_warning] async context not enabled on browser`);
-        }
-        return;
-    }
-    return require("async_hooks");
-}
+// const ASYNC_HOOKS = __importAsyncHooks();
+// function __importAsyncHooks() {
+//     if (typeof window !== "undefined") {
+//         console.log(`[WARNING] async context not enabled on browser`);
+//         return;
+//     }
+//     return require("async_hooks");
+// }
 
 const _store = new Map<number, Record<string, any>>();
 const _hook = ASYNC_HOOKS?.createHook?.({
@@ -27,25 +26,29 @@ const _hook = ASYNC_HOOKS?.createHook?.({
 
 _hook?.enable?.();
 
+const execContext = () => {
+    return ASYNC_HOOKS.executionAsyncId() || ASYNC_HOOKS.triggerAsyncId();
+};
+
 export const AsyncContext = {
     get(key: string): any | undefined {
-        if (!ASYNC_HOOKS || !_store.has(ASYNC_HOOKS.executionAsyncId())) {
+        if (!ASYNC_HOOKS || !_store.has(execContext())) {
             return undefined;
         }
 
-        return _store.get(ASYNC_HOOKS.executionAsyncId())![key];
+        return _store.get(execContext())![key];
+    },
+
+    getAll() {
+        return _store.get(execContext())!;
     },
 
     set(key: string, value: any): void {
-        if (!ASYNC_HOOKS) {
-            return;
-        }
-
         let newVal = {
-            ..._store.get(ASYNC_HOOKS.executionAsyncId()),
+            ..._store.get(execContext()),
             [key]: value,
         };
 
-        _store.set(ASYNC_HOOKS.executionAsyncId(), newVal);
+        _store.set(execContext(), newVal);
     },
 };

@@ -10,7 +10,8 @@
         "build": "tsc -p tsconfig.build.json",
         "build:clean": "rm -rf lib && npm run build",
         "prepublishOnly": "npm run build:clean && npm run test",
-        "preversion": "npm run prepublishOnly"
+        "preversion": "npm run prepublishOnly",
+        "pm2": "pm2-runtime start process.config.js"
     },
     "repository": {
         "type": "git",

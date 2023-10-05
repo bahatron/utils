@@ -1,0 +1,10 @@
+services:
+    utils:
+        build:
+            dockerfile: Dockerfile
+            context: .
+        image: bht-utils
+        container_name: bht-utils
+        command: npm run watch
+        volumes:
+            - .:/app
