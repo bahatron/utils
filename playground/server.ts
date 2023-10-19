@@ -17,7 +17,7 @@ async function main() {
         async () => {
             await sayHello();
 
-            app.listen(3000, () => {
+            app.listen(3123, () => {
                 logger.info(`express server running`);
             });
         },

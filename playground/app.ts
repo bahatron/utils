@@ -31,8 +31,9 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     let requestId = AsyncContext.get("request_id");
     let user = AsyncContext.get("user");
+    let context = AsyncContext.get("context");
 
-    console.log({ requestId, user });
+    console.log({ requestId, user, context });
 
     return next();
 });
