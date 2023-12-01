@@ -1,25 +1,23 @@
 export function LogContext(context: any) {
-    if (context?.isAxiosError) {
-        return {
-            req: {
-                headers: context.config?.headers,
-                method: context.config?.method,
-                url: context.config?.url,
-                params: context.config?.params,
-                data: context.config?.data,
-            },
-            res: {
-                headers: context.response?.headers,
-                status: context.response?.status,
-                data: context.response?.data,
-            },
-        };
-    }
-
     let weakSet = new WeakSet();
 
     const recursiveReduce = (context: any): any => {
-        if (context instanceof Error) {
+        if (context?.isAxiosError) {
+            return {
+                req: {
+                    headers: context.config?.headers,
+                    method: context.config?.method,
+                    url: context.config?.url,
+                    params: context.config?.params,
+                    data: context.config?.data,
+                },
+                res: {
+                    headers: context.response?.headers,
+                    status: context.response?.status,
+                    data: context.response?.data,
+                },
+            };
+        } else if (context instanceof Error) {
             return {
                 ...context,
                 stack: context?.stack?.split(`\n`).map((entry) => entry.trim()),
