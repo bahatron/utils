@@ -23,7 +23,7 @@ export function LogContext(context: any) {
                 stack: context?.stack?.split(`\n`).map((entry) => entry.trim()),
             };
         } else if (typeof context === "bigint") {
-            return Number(context);
+            return `[BigInt]: ${context.toString()}`;
         } else if (typeof context?.toISOString === "function") {
             return `[Date]: ${context.toISOString()}`;
         } else if (Array.isArray(context)) {
