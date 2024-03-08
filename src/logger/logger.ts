@@ -6,7 +6,7 @@ import {
     LoggerLevel,
 } from "./interfaces";
 import { Handler, Observable } from "../observable";
-import { red, prettyFormatter, ymlFormatter } from "./formatters";
+import { prettyFormatter } from "./formatters";
 import { ERROR_LEVEL } from "./constants";
 import { LogContext } from "./context";
 
@@ -49,10 +49,16 @@ export function Logger(options: CreateLoggerOptions = {}) {
     }
 
     return {
-        Logger,
+        instance(instanceOptions: CreateLoggerOptions) {
+            return Logger({
+                ...options,
+                ...instanceOptions,
+            });
+        },
 
         async flush() {
             await Promise.all(Array.from(_stack));
+            _stack.clear();
         },
 
         on(event: LoggerEvent, handler: Handler<LogEntry>) {
@@ -63,18 +69,11 @@ export function Logger(options: CreateLoggerOptions = {}) {
             };
 
             _bus.on(event, job);
+            return job;
         },
 
-        inspect(payload: any): void {
-            let print = `${red(
-                `type: ${Array.isArray(payload) ? "array" : typeof payload}`,
-            )}${ymlFormatter(LogContext(payload))}\n`;
-
-            try {
-                process.stdout.write(print);
-            } catch (err) {
-                console.log(print);
-            }
+        off(event: LoggerEvent, job: (entry: LogEntry) => Promise<void>) {
+            _bus.off(event, job);
         },
 
         debug(payload: any, message?: string): void {
