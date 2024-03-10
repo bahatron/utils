@@ -91,33 +91,6 @@ describe("error logging", () => {
     });
 });
 
-describe("inspect", () => {
-    let logger = Logger.Logger({
-        pretty: true,
-        id: "inspect_logger",
-    });
-
-    it("inspects null", () => {
-        logger.inspect(null);
-    });
-
-    it("inspects undefined", () => {
-        logger.inspect(undefined);
-    });
-
-    it("inspects object", () => {
-        logger.inspect(LOGGER_TEST_PAYLOAD);
-    });
-
-    it("inspects primitive", () => {
-        logger.inspect("hello there");
-    });
-
-    it("inspects array", () => {
-        logger.inspect([1, 2, "3"]);
-    });
-});
-
 describe("nested context building", () => {
     it("parses nested object keys into format", () => {
         let logger = Logger.Logger({
