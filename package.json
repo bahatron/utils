@@ -11,7 +11,7 @@
         "build:clean": "rm -rf lib && npm run build",
         "prepublishOnly": "npm run build:clean && npm run test",
         "preversion": "npm run prepublishOnly",
-        "pm2": "pm2-runtime start process.config.js"
+        "playground": "ts-node-dev playground/index.ts"
     },
     "repository": {
         "type": "git",
