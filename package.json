@@ -1,6 +1,6 @@
 {
     "name": "@bahatron/utils",
-    "version": "3.6.12",
+    "version": "3.7.0",
     "description": "common utilities",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
