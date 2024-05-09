@@ -11,6 +11,6 @@ export function jsonStringify(
 }
 
 /**
- * @deprecated use stringifyJson instead
+ * @deprecated use jsonStringify instead
  */
 export { jsonStringify as stringify };

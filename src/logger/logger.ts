@@ -1,11 +1,5 @@
-import { stringify } from "../helpers/stringify";
-import {
-    CreateLoggerOptions,
-    LogEntry,
-    LoggerEvent,
-    LoggerLevel,
-} from "./interfaces";
-import { Handler, Observable } from "../observable";
+import { stringify } from "../helpers/json-stringify";
+import { CreateLoggerOptions, LogEntry, LoggerLevel } from "./interfaces";
 import { prettyFormatter } from "./formatters";
 import { ERROR_LEVEL } from "./constants";
 import { LogContext } from "./context";
@@ -19,11 +13,9 @@ export function Logger(options: CreateLoggerOptions = {}) {
         pretty: _pretty = false,
     } = options;
 
-    let _bus = Observable();
     let _formatter = _pretty ? prettyFormatter : formatter;
-    let _stack: Set<Function> = new Set();
 
-    function _log(params: {
+    function print(params: {
         level: LoggerLevel;
         message?: string;
         context?: any;
@@ -49,73 +41,38 @@ export function Logger(options: CreateLoggerOptions = {}) {
     }
 
     return {
-        instance(instanceOptions: CreateLoggerOptions) {
-            return Logger({
-                ...options,
-                ...instanceOptions,
-            });
-        },
-
-        async flush() {
-            await Promise.all(Array.from(_stack));
-            _stack.clear();
-        },
-
-        on(event: LoggerEvent, handler: Handler<LogEntry>) {
-            let job = async (entry: LogEntry) => {
-                _stack.add(job);
-                await handler(entry);
-                _stack.delete(job);
-            };
-
-            _bus.on(event, job);
-            return job;
-        },
-
-        off(event: LoggerEvent, job: (entry: LogEntry) => Promise<void>) {
-            _bus.off(event, job);
-        },
-
-        debug(payload: any, message?: string): void {
+        debug(context: any, message?: string): void {
             if (!_debug) return;
 
-            let entry = _log({
+            print({
                 level: ERROR_LEVEL.DEBUG,
                 message,
-                context: LogContext(payload),
+                context: LogContext(context),
             });
-
-            _bus.emit("debug", entry);
         },
 
-        info(payload: any, message?: string): void {
-            let entry = _log({
+        info(context: any, message?: string): void {
+            print({
                 level: ERROR_LEVEL.INFO,
                 message,
-                context: LogContext(payload),
+                context: LogContext(context),
             });
-
-            _bus.emit("info", entry);
         },
 
-        warning(payload: any, message?: string): void {
-            let entry = _log({
+        warning(context: any, message?: string): void {
+            print({
                 level: ERROR_LEVEL.WARNING,
-                context: LogContext(payload),
-                message: message ?? payload?.message,
+                message: message,
+                context: LogContext(context),
             });
-
-            _bus.emit("warning", entry);
         },
 
         error(err: any, message?: string): void {
-            let entry = _log({
+            print({
                 level: ERROR_LEVEL.ERROR,
                 message: message ?? err?.message,
                 context: LogContext(err),
             });
-
-            _bus.emit("error", entry);
         },
     };
 }

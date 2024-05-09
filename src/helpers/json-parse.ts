@@ -10,6 +10,6 @@ export function jsonParse<T = any>(payload: any): T | T[] | undefined {
 }
 
 /**
- * @deprecated use parseJson
+ * @deprecated use jsonParse
  */
 export { jsonParse as parse };

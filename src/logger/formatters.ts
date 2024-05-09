@@ -1,4 +1,4 @@
-import { stringify } from "../helpers/stringify";
+import { stringify } from "../helpers/json-stringify";
 import { ERROR_LEVEL } from "./constants";
 import { LogEntry, LoggerLevel } from "./interfaces";
 

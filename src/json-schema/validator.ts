@@ -1,12 +1,7 @@
 import { TSchema, Static } from "@sinclair/typebox";
-import jsonschema, { Schema } from "jsonschema";
+import jsonschema from "jsonschema";
 import { ValidationFailed } from "../error";
 
-interface JsonSchemaError {
-    path: (string | number)[];
-    error: string;
-    type: string;
-}
 const validator = new jsonschema.Validator();
 
 /**

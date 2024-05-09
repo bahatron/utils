@@ -1,7 +1,5 @@
 import { ERROR_LEVEL } from "./constants";
 
-export type LoggerEvent = "debug" | "info" | "warning" | "error";
-
 export type LoggerLevel = keyof typeof ERROR_LEVEL;
 
 export interface LogEntry {

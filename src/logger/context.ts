@@ -30,7 +30,6 @@ export function LogContext(context: any) {
             return context.map(recursiveReduce);
         } else if (["object"].includes(typeof context) && Boolean(context)) {
             if (weakSet.has(context)) return `[Reference]`;
-
             weakSet.add(context);
             return Object.entries(context).reduce((aggregate, [key, value]) => {
                 aggregate[key] = recursiveReduce(value);

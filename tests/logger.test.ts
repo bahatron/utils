@@ -27,39 +27,19 @@ describe("pretty print", () => {
     const _logger = Logger.Logger({ pretty: true });
 
     it("pretty debug", async () => {
-        return new Promise<void>((resolve) => {
-            _logger.on("debug", () => {
-                resolve();
-            });
-            _logger.debug({ foo: "bar" }, "debug");
-        });
+        _logger.debug({ foo: "bar" }, "debug");
     });
 
     it("pretty info", async () => {
-        return new Promise<void>((resolve) => {
-            _logger.on("info", () => {
-                resolve();
-            });
-            _logger.info(function doSomething() {}, "info");
-        });
+        _logger.info(function doSomething() {}, "info");
     });
 
     it("pretty warning", async () => {
-        return new Promise<void>((resolve) => {
-            _logger.on("warning", () => {
-                resolve();
-            });
-            _logger.warning(["rick", "sanchez", "c-137"], "warning");
-        });
+        _logger.warning(["rick", "sanchez", "c-137"], "warning");
     });
 
     it("pretty error", async () => {
-        return new Promise<void>((resolve) => {
-            _logger.on("error", () => {
-                resolve();
-            });
-            _logger.error({ error: "error" }, "error");
-        });
+        _logger.error({ error: "error" }, "error");
     });
 });
 
