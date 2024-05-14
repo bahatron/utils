@@ -28,15 +28,17 @@ export function LogContext(context: any) {
             return `[Date]: ${context.toISOString()}`;
         } else if (Array.isArray(context)) {
             return context.map(recursiveReduce);
-        } else if (["object"].includes(typeof context) && Boolean(context)) {
+        } else if (typeof context === "function") {
+            return `[Function: ${(context as Function).name || undefined}]`;
+        } else if (typeof context === "symbol") {
+            return context.toString();
+        } else if (typeof context === "object" && Boolean(context)) {
             if (weakSet.has(context)) return `[Reference]`;
             weakSet.add(context);
             return Object.entries(context).reduce((aggregate, [key, value]) => {
                 aggregate[key] = recursiveReduce(value);
                 return aggregate;
             }, {} as Record<string | number, any>);
-        } else if (typeof context === "function") {
-            return `[Function: ${(context as Function).name || undefined}]`;
         } else {
             return context;
         }

@@ -1,6 +1,6 @@
 import { stringify } from "../helpers/json-stringify";
 import { ERROR_LEVEL } from "./constants";
-import { LogEntry, LoggerLevel } from "./interfaces";
+import { LogEntry } from "./interfaces";
 
 export const green = (text: string) => `\x1b[32m${text}\x1b[0m`;
 export const blue = (text: string) => `\x1b[34m${text}\x1b[0m`;
@@ -23,7 +23,7 @@ export function prettyFormatter({
     context,
 }: LogEntry) {
     function _level() {
-        return ERROR_LEVEL_COLOR[level as LoggerLevel](level) ?? level;
+        return ERROR_LEVEL_COLOR[level](level) ?? level;
     }
 
     let _message = () => (message ? ` ${cyan(message)}` : ``);

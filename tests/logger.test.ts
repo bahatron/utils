@@ -96,3 +96,26 @@ describe("nested context building", () => {
         logger.error(null, "a null");
     });
 });
+
+describe("Symbols", () => {
+    let logger = Logger.Logger({
+        pretty: true,
+        id: "symbol log",
+    });
+
+    it("can handle symbols", () => {
+        let withDescription = Symbol("desc");
+        let empty = Symbol();
+
+        logger.info(withDescription, "with description");
+        logger.info(empty, "empty symbol");
+        logger.info(
+            {
+                withDescription,
+                empty,
+                list: [withDescription, empty],
+            },
+            "nested",
+        );
+    });
+});

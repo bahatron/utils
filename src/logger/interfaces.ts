@@ -13,6 +13,6 @@ export interface LogEntry {
 export interface CreateLoggerOptions {
     debug?: boolean;
     pretty?: boolean;
-    id?: string | (() => any);
+    id?: string | (() => string);
     formatter?: (entry: LogEntry) => string;
 }
