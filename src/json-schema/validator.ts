@@ -1,5 +1,5 @@
-import { TSchema, Static } from "@sinclair/typebox";
-import jsonschema from "jsonschema";
+import { TSchema, Static, Type } from "@sinclair/typebox";
+import jsonschema, { Schema } from "jsonschema";
 import { ValidationFailed } from "../error";
 
 const validator = new jsonschema.Validator();
@@ -7,7 +7,10 @@ const validator = new jsonschema.Validator();
 /**
  * @description Returns the object if it's valid, Throws an exception if there are validation errors
  */
-export function validate<T extends TSchema>(val: any, schema: T): Static<T> {
+export function validate<T extends TSchema | Schema>(
+    val: any,
+    schema: T,
+): T extends TSchema ? Static<T> : any {
     let result = validator.validate(val, schema);
 
     if (!result.errors.length) return val;
