@@ -1,26 +1,35 @@
 import { jsonStringify } from "../helpers/json-stringify";
 import { CreateLoggerOptions, LogEntry, LoggerLevel } from "./interfaces";
 import { prettyFormatter } from "./formatters";
-import { ERROR_LEVEL } from "./constants";
+import { LOGGER_LEVEL, LOGGER_LEVEL_VALUE } from "./constants";
 import { LogContext } from "./context";
 
 export type Logger = ReturnType<typeof Logger>;
 export function Logger(options: CreateLoggerOptions = {}) {
     let {
-        debug: _debug = true,
+        minLogLevel = LOGGER_LEVEL.DEBUG,
         id: _id,
-        formatter = jsonStringify,
+        formatter,
         pretty: _pretty = false,
     } = options;
 
-    let _formatter = _pretty ? prettyFormatter : formatter;
+    let _minLogLevel = LOGGER_LEVEL_VALUE[minLogLevel];
+
+    let _formatter: NonNullable<CreateLoggerOptions["formatter"]> = formatter
+        ? formatter
+        : _pretty
+        ? prettyFormatter
+        : jsonStringify;
 
     function print(params: {
         level: LoggerLevel;
         message?: string;
         context?: any;
-    }): LogEntry {
+    }) {
         let { message, context, level } = params;
+
+        if (LOGGER_LEVEL_VALUE[level] < _minLogLevel) return;
+
         let timestamp = new Date();
 
         let shouldLogContext = Boolean(
@@ -36,16 +45,12 @@ export function Logger(options: CreateLoggerOptions = {}) {
         };
 
         process.stdout.write(`${_formatter(entry)}\n`);
-
-        return entry;
     }
 
     return {
         debug(context: any, message?: string): void {
-            if (!_debug) return;
-
             print({
-                level: ERROR_LEVEL.DEBUG,
+                level: LOGGER_LEVEL.DEBUG,
                 message,
                 context: LogContext(context),
             });
@@ -53,7 +58,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
         info(context: any, message?: string): void {
             print({
-                level: ERROR_LEVEL.INFO,
+                level: LOGGER_LEVEL.INFO,
                 message,
                 context: LogContext(context),
             });
@@ -61,7 +66,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
         warn(context: any, message?: string): void {
             print({
-                level: ERROR_LEVEL.WARNING,
+                level: LOGGER_LEVEL.WARNING,
                 message: message,
                 context: LogContext(context),
             });
@@ -69,7 +74,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
         warning(context: any, message?: string): void {
             print({
-                level: ERROR_LEVEL.WARNING,
+                level: LOGGER_LEVEL.WARNING,
                 message: message,
                 context: LogContext(context),
             });
@@ -77,7 +82,7 @@ export function Logger(options: CreateLoggerOptions = {}) {
 
         error(err: any, message?: string): void {
             print({
-                level: ERROR_LEVEL.ERROR,
+                level: LOGGER_LEVEL.ERROR,
                 message: message ?? err?.message,
                 context: LogContext(err),
             });
