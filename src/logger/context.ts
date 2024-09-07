@@ -3,7 +3,7 @@ export function LogContext(context: any) {
 
     const recursiveReduce = (context: any): any => {
         if (context?.isAxiosError) {
-            return {
+            return recursiveReduce({
                 req: {
                     headers: context.config?.headers,
                     method: context.config?.method,
@@ -16,12 +16,14 @@ export function LogContext(context: any) {
                     status: context.response?.status,
                     data: context.response?.data,
                 },
-            };
+            });
         } else if (context instanceof Error) {
             return {
                 ...context,
                 stack: context?.stack?.split(`\n`).map((entry) => entry.trim()),
             };
+        } else if (Buffer.isBuffer(context)) {
+            return `[Buffer]: ${context.byteLength}`;
         } else if (typeof context === "bigint") {
             return `[BigInt]: ${context.toString()}`;
         } else if (typeof context?.toISOString === "function") {
