@@ -1,15 +1,16 @@
 import { Logger } from "../src";
-import { ValidationFailed } from "../src/error";
+import express from "express";
 
-async function main() {
-    let logger = Logger.Create({
-        minLogLevel: Logger.LOGGER_LEVEL.DEBUG,
-        pretty: false,
-        formatter:
-            process.env.NODE_ENV !== "production"
-                ? Logger.Formatters.Pretty
-                : undefined,
-    });
-}
+const logger = Logger.Create();
 
-main();
+const app = express();
+
+app.get(`/`, async (req, res) => {
+    logger.info("ping");
+
+    res.json("pong");
+});
+
+app.listen(3000, () => {
+    logger.info("hello world");
+});

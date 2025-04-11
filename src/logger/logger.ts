@@ -36,15 +36,19 @@ export function Logger(options: CreateLoggerOptions = {}) {
             ["string", "number"].includes(typeof context) && !message,
         );
 
-        let entry = {
+        let log = _formatter({
             timestamp,
             id: typeof _id == "function" ? _id() : _id,
             level,
             message: shouldLogContext ? context : message,
             context: shouldLogContext ? undefined : context,
-        };
+        });
 
-        process.stdout.write(`${_formatter(entry)}\n`);
+        try {
+            process.stdout.write(`${log}\n`);
+        } catch (e) {
+            console.log(log);
+        }
     }
 
     return {

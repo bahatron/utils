@@ -1,15 +1,15 @@
 class Exception extends Error {
     public readonly name: string;
     public readonly message: string;
-    public readonly code: string | number;
-    public readonly context?: any;
 
-    constructor(
-        name: string,
-        code: string | number,
-        message?: string,
-        context?: any,
-    ) {
+    /**
+     * @deprecated use statusCode
+     */
+    public readonly code: number;
+    public readonly context?: any;
+    public readonly statusCode?: number;
+
+    constructor(name: string, code: number, message?: string, context?: any) {
         super();
 
         let contextIsMessage =
@@ -17,9 +17,11 @@ class Exception extends Error {
 
         this.name = name;
         this.code = code;
+        this.statusCode = code;
         this.message =
             contextIsMessage && context ? context : message ? message : name;
         this.context = contextIsMessage ? undefined : context;
+        // this.stack = this?.stack?.split("\n").map((entry) => entry.trim()),
     }
 }
 

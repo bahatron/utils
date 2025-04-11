@@ -17,7 +17,7 @@ export function validate<T extends TSchema | Schema>(
 
     let errors = result.errors.map((err) => {
         return {
-            path: err.path,
+            path: (err.path as string[])?.join("::"),
             error: err.message,
             type: err.name,
         };
