@@ -1,6 +1,6 @@
 {
     "name": "@bahatron/utils",
-    "version": "4.0.2",
+    "version": "4.1.0",
     "description": "The only util library you'll ever need",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
