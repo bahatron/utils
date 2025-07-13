@@ -1,21 +1,20 @@
-import { stringify } from "../helpers/json-stringify";
-import { LOGGER_LEVEL } from "./constants";
-import { LogEntry } from "./interfaces";
+import { jsonStringify } from "../helpers/json-stringify";
+import { LogEntry, LoggerLevel } from "./logger";
 
-export const green = (text: string) => `\x1b[32m${text}\x1b[0m`;
-export const blue = (text: string) => `\x1b[34m${text}\x1b[0m`;
-export const orange = (text: string) => `\x1b[33m${text}\x1b[0m`;
-export const red = (text: string) => `\x1b[31m${text}\x1b[0m`;
-export const cyan = (text: string) => `\x1b[36m${text}\x1b[0m`;
+const green = (text: string) => `\x1b[32m${text}\x1b[0m`;
+const blue = (text: string) => `\x1b[34m${text}\x1b[0m`;
+const orange = (text: string) => `\x1b[33m${text}\x1b[0m`;
+const red = (text: string) => `\x1b[31m${text}\x1b[0m`;
+const cyan = (text: string) => `\x1b[36m${text}\x1b[0m`;
 
 const ERROR_LEVEL_COLOR = {
-    [LOGGER_LEVEL.DEBUG]: blue,
-    [LOGGER_LEVEL.INFO]: green,
-    [LOGGER_LEVEL.WARNING]: orange,
-    [LOGGER_LEVEL.ERROR]: red,
+    [LoggerLevel.DEBUG]: blue,
+    [LoggerLevel.INFO]: green,
+    [LoggerLevel.WARNING]: orange,
+    [LoggerLevel.ERROR]: red,
 };
 
-export function prettyFormatter(entry: LogEntry) {
+export function PrettyFormatter(entry: LogEntry) {
     let { timestamp, message, level, id, context } = entry;
 
     function _level() {
@@ -28,7 +27,7 @@ export function prettyFormatter(entry: LogEntry) {
         return context !== undefined
             ? `\n${
                   hasEntries(context)
-                      ? stringify(context, null, 4)
+                      ? jsonStringify(context, null, 4)
                       : `    ${context}`
               }`
             : ``;
@@ -37,7 +36,7 @@ export function prettyFormatter(entry: LogEntry) {
     return `[${timestamp.toISOString()}] ${_level()}${_id()}${_message()}${_context()}`;
 }
 
-export function ymlFormatter(context: any, __level = 0): string {
+export function YmlFormatter(context: any, __level = 0): string {
     let indentation = () => `\n${" ".repeat((__level + 1) * 4)}`;
     let valuePrint = (val: any) => `${val}`;
 
@@ -46,7 +45,7 @@ export function ymlFormatter(context: any, __level = 0): string {
             return carry.concat(
                 `${indentation()}${key}: ${
                     hasEntries(value)
-                        ? ymlFormatter(value, __level + 1)
+                        ? YmlFormatter(value, __level + 1)
                         : valuePrint(value)
                 }`,
             );

@@ -1,7 +1,5 @@
-import { prettyFormatter, ymlFormatter } from "./formatters";
+import { PrettyFormatter, YmlFormatter } from "./formatters";
 
-export { Logger as Create } from "./logger";
-export { LOGGER_LEVEL } from "./constants";
-export * from "./interfaces";
-
-export const Formatters = { Yaml: ymlFormatter, Pretty: prettyFormatter };
+export { default as Create } from "./logger";
+export * from "./logger";
+export const Formatters = { Yml: YmlFormatter, Pretty: PrettyFormatter };
