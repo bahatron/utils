@@ -8,7 +8,9 @@ import {
 } from "@sinclair/typebox";
 import { validate } from "./validator";
 
-function StringEnum<T extends string[]>(values: [...T]): TUnsafe<T[number]> {
+function StringEnum<T extends string[] | readonly string[]>(
+    values: [...T],
+): TUnsafe<T[number]> {
     return Type.Unsafe<T[number]>({ type: "string", enum: values });
 }
 

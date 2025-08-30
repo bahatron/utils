@@ -13,60 +13,68 @@ Fast and simple event driven logger.
 ```ts
 import { Logger } from "@bahatron/utils";
 
-const logger = Logger.Logger({
-	id: "myLogger",
-	pretty: false,
-	debug: true
-})
+const logger = Logger.Create({
+    id: "myLogger",
+    pretty: false,
+    debug: true,
+});
 
 logger.on("error", async (entry) => {
-	// doSomething
-})
+    // doSomething
+});
 
-logger.warning({foo: "bar", "this is a warning")
+logger.warning({ foo: "bar" }, "this is a warning");
 ```
 
 ## Helpers
 
-### getenv
-
-get env will throw an exception if MY_ENV_VAR is not set and there's no default value.
-This is good for failing fast
+Collection of highly useful helper functions
 
 ```ts
 import { Helpers } from "@bahatron/utils";
 
-let val = Helpers.getenv("MY_ENV_VAR", "aDefaultValue");
+const val = Helpers.getenv("MY_ENV_VAR", "aDefaultValue");
+
+await Helpers.parallelize({
+    workers: 100,
+    queue: httpCallsToMake,
+    handler: async (item) => {
+        // doYourThing
+    },
+});
 ```
 
-### parallelize
+## JsonSchema
 
-Parallelize the work of a queue of item around a number of workers.
-This is done through promises on the main thread rather than using child processes
-Great for funnelling http calls
+The JsonSchema object provides a schema builder (based on TypeForm) plus a typecaster validator (jsonschema)
 
 ```ts
-let httpCallsToMake = [...]
+import { JsonSchema } from "@bahatron/utils";
 
-await parallelize({
-	workers: 100,
-	queue: httpCallsToMake,
-	handler: async (item) => {
-		// doYourThing
-	}
-})
+const schema = JsonSchema.Object({
+    foo: JsonSchema.String(),
+});
+
+const myObject = JsonSchema.validate(
+    {
+        foo: "bar",
+    },
+    schema,
+);
+
+myObject.foo; // string
 ```
 
-## Validator
+## Observable
+
+Runtime agnostic and typehinted implementation of node's EventEmitter class.
 
 ```ts
-import { Validator } from "@bahatron/utils";
+import { Observable } from "@bahatron/utils";
 
-let errors = Validator.json(MyObject, MyJsonSchema);
+const observer = Observable<"foo" | "bar">();
 
-let maybeString = Validator.optionalString(null); // undefined
+observer.once("foo", doSomething);
 
-let maybeInt = Validator.optionalInt("12"); // 12
-
-let maybeInt = Validator.optionalInt("abc"); // undefined
+observer.emit("foo");
 ```
