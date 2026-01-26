@@ -1,15 +1,15 @@
 import {
     TSchema,
-    ExtendedTypeBuilder,
     Type,
     TUnion,
     TNull,
     TUnsafe,
+    JavaScriptTypeBuilder,
 } from "@sinclair/typebox";
 import { validate } from "./validator";
 
-function StringEnum<T extends string[] | readonly string[]>(
-    values: [...T],
+function StringEnum<T extends readonly string[]>(
+    values: T,
 ): TUnsafe<T[number]> {
     return Type.Unsafe<T[number]>({ type: "string", enum: values });
 }
@@ -37,7 +37,7 @@ function ExtendedTypeBox() {
 
     let extended = Object.setPrototypeOf(extension, Type);
 
-    return extended as typeof extension & ExtendedTypeBuilder;
+    return extended as typeof extension & JavaScriptTypeBuilder;
 }
 
 export const Schema = ExtendedTypeBox();

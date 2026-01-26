@@ -15,13 +15,5 @@ export function validate<T extends TSchema | Schema>(
 
     if (!result.errors.length) return val;
 
-    let errors = result.errors.map((err) => {
-        return {
-            path: (err.path as string[])?.join("::"),
-            error: err.message,
-            type: err.name,
-        };
-    });
-
-    throw ValidationFailed(errors, "JsonSchema Validation Failed");
+    throw ValidationFailed(result.errors, "JsonSchema Validation Failed");
 }
