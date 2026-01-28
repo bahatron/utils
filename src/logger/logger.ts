@@ -27,27 +27,17 @@ export interface LogEntry {
 }
 
 export interface CreateLoggerOptions {
-    /**
-     * @deprecated use formatter instead
-     * @description uses a formatter optimised for development experience, if a customer formatter is supplied, this flag gets overwritten
-     */
-    pretty?: boolean;
     /** @description a function can be supplied to capture async context and have a dynamic logger tracing */
     id?: string | (() => string);
-    /** @description the output of this function will be printed to std.output. defaults to single line json object */
-    formatter?: (entry: LogEntry) => string;
+    /** @description the output of this function will be printed. defaults to single line json object */
+    formatter?: (entry: LogEntry) => string | object;
     /** @description min logger level, defaults to DEBUG (all logs) */
     minLogLevel?: LoggerLevel;
 }
 
 export type Logger = ReturnType<typeof Logger>;
 export default function Logger(options: CreateLoggerOptions = {}) {
-    let {
-        minLogLevel = LoggerLevel.DEBUG,
-        id: _id,
-        formatter,
-        pretty: _pretty = false,
-    } = options;
+    let { minLogLevel = LoggerLevel.DEBUG, id: _id, formatter } = options;
 
     let _minLogLevel = LoggerLevelValue[minLogLevel];
 
@@ -56,8 +46,6 @@ export default function Logger(options: CreateLoggerOptions = {}) {
 
     let _formatter: NonNullable<CreateLoggerOptions["formatter"]> = formatter
         ? formatter
-        : _pretty
-        ? PrettyFormatter
         : jsonStringify;
 
     function _print(params: {
@@ -86,7 +74,9 @@ export default function Logger(options: CreateLoggerOptions = {}) {
         let log = _formatter(entry);
 
         try {
-            process.stdout.write(`${log}\n`);
+            typeof log === "string"
+                ? process.stdout.write(`${log}\n`)
+                : console.log(log);
         } catch (e) {
             console.log(log);
         }

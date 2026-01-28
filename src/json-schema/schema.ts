@@ -1,10 +1,9 @@
 import {
     TSchema,
     Type,
-    TUnion,
-    TNull,
     TUnsafe,
     JavaScriptTypeBuilder,
+    Static,
 } from "@sinclair/typebox";
 import { validate } from "./validator";
 
@@ -14,8 +13,11 @@ function StringEnum<T extends readonly string[]>(
     return Type.Unsafe<T[number]>({ type: "string", enum: values });
 }
 
-function Nullable<T extends TSchema>(type: T): TUnion<[T, TNull]> {
-    return Type.Union([type, Type.Null()]);
+function Nullable<T extends TSchema>(schema: T): TUnsafe<Static<T> | null> {
+    return Type.Unsafe<Static<T> | null>({
+        ...schema,
+        type: [schema.type, "null"],
+    });
 }
 
 function Email() {
