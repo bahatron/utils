@@ -2,7 +2,9 @@ import { Schema } from "../src/json-schema";
 
 let nullableString = Schema.Nullable(Schema.String());
 let nullableArray = Schema.Nullable(Schema.Array(Schema.Number()));
-let nullableEnum = Schema.Nullable(Schema.StringEnum(["a", "b", "c"]));
+let nullableEnum = Schema.Nullable(
+    Schema.StringEnum(["a", "b", "c"], { description: "some enum values" }),
+);
 let nullableObject = Schema.Nullable(
     Schema.Object({
         id: Schema.Number(),

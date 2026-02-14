@@ -1,16 +1,23 @@
 import {
     TSchema,
     Type,
-    TUnsafe,
-    JavaScriptTypeBuilder,
-    Static,
+    type TUnsafe,
+    type JavaScriptTypeBuilder,
+    type Static,
+    type SchemaOptions,
+    StringOptions,
 } from "@sinclair/typebox";
 import { validate } from "./validator";
 
 function StringEnum<T extends readonly string[]>(
     values: T,
+    options?: SchemaOptions,
 ): TUnsafe<T[number]> {
-    return Type.Unsafe<T[number]>({ type: "string", enum: values });
+    return Type.Unsafe<T[number]>({
+        type: "string",
+        enum: values,
+        ...options,
+    });
 }
 
 function Nullable<T extends TSchema>(schema: T): TUnsafe<Static<T> | null> {
@@ -20,12 +27,15 @@ function Nullable<T extends TSchema>(schema: T): TUnsafe<Static<T> | null> {
     });
 }
 
-function Email() {
-    return Type.String({ format: "email" });
+function Email(options?: StringOptions) {
+    return Type.String({ ...options, format: "email" });
 }
 
-function DateExtended() {
-    return Type.Union([Type.String({ format: "date-time" }), Type.Date()]);
+function DateExtended(options?: SchemaOptions) {
+    return Type.Union(
+        [Type.String({ format: "date-time" }), Type.Date()],
+        options,
+    );
 }
 
 function ExtendedTypeBox() {
