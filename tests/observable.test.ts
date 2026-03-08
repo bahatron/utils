@@ -1,4 +1,4 @@
-import { Observable } from "../lib/observable";
+import { Observable } from "../src/observable";
 
 describe("Observable", () => {
     it("can subscribe to events", () => {
