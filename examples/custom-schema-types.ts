@@ -81,24 +81,26 @@ export function ExpandedItem<T extends TSchema>(schema: T) {
         ]),
     );
 }
-console.log(
-    JsonSchema.Composite(
-        [
-            JsonSchema.Object({ foo: JsonSchema.String() }),
-            JsonSchema.Object({ bar: JsonSchema.Number() }),
-        ],
-        {
-            description: "A composite schema that combines two object schemas.",
-            additionalProperties: false,
-        },
-    ),
+
+const composed = JsonSchema.Composite(
+    [
+        JsonSchema.Object({ foo: JsonSchema.String() }),
+        JsonSchema.Object({ bar: JsonSchema.Number() }),
+    ],
+    {
+        description: "A composite schema that combines two object schemas.",
+        additionalProperties: false,
+    },
 );
 
-const dateExt = JsonSchema.DateExtended();
-const date = JsonSchema.Date();
-let val = JsonSchema.validate("2023-01-01T00:00:00Z", dateExt);
-let val2 = JsonSchema.validate(new Date(), date);
-console.log("val2", val2);
-console.log("val", val);
-console.log(JsonSchema.validate("2023-01-01", dateExt));
-console.log(JsonSchema.validate("2023-01-01T00:00:00Z", dateExt));
+console.log(composed);
+
+function merger<T extends TSchema>(schemas: T[]) {
+    return Schema.Evaluate(Schema.Intersect(schemas));
+}
+
+const A = Schema.Object({ a: Schema.Number() });
+const B = Schema.Object({ b: Schema.Number() });
+const C = Schema.Object({ c: Schema.Number() });
+
+const composite = Schema.Composite([A, B, C]);

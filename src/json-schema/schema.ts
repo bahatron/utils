@@ -1,5 +1,7 @@
 import {
     Static,
+    TEvaluate,
+    TIntersect,
     TSchema,
     TSchemaOptions,
     TStringOptions,
@@ -46,6 +48,21 @@ function DateExtended(options?: TSchemaOptions) {
     ]);
 }
 
+// the return type hint is necessary, which is not too cool
+function CompositeV1<T extends TSchema[]>(
+    schemas: [...T],
+    options?: TSchemaOptions,
+): TEvaluate<TIntersect<T>> {
+    return Type.Evaluate(Type.Intersect(schemas), options);
+}
+
+function Composite<T extends TSchema[]>(
+    schemas: [...T],
+    options?: TSchemaOptions,
+) {
+    return Type.Interface(schemas, {}, options);
+}
+
 function ExtendedTypeBox() {
     let extension = {
         validate,
@@ -54,9 +71,7 @@ function ExtendedTypeBox() {
         Email,
         Date,
         DateExtended,
-        Composite: (items: TSchema[], options?: TSchemaOptions) => {
-            return Type.Evaluate(Type.Intersect(items), options);
-        },
+        Composite,
     };
 
     let extended = Object.setPrototypeOf(extension, Type);
