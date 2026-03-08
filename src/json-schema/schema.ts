@@ -1,17 +1,16 @@
 import {
+    Static,
     TSchema,
+    TSchemaOptions,
+    TStringOptions,
+    TUnsafe,
     Type,
-    type TUnsafe,
-    type JavaScriptTypeBuilder,
-    type Static,
-    type SchemaOptions,
-    StringOptions,
-} from "@sinclair/typebox";
+} from "typebox";
 import { validate } from "./validator";
 
 function StringEnum<T extends readonly string[]>(
     values: T,
-    options?: SchemaOptions,
+    options?: TStringOptions,
 ): TUnsafe<T[number]> {
     return Type.Unsafe<T[number]>({
         type: "string",
@@ -20,22 +19,31 @@ function StringEnum<T extends readonly string[]>(
     });
 }
 
-function Nullable<T extends TSchema>(schema: T): TUnsafe<Static<T> | null> {
+function Nullable<T extends TSchema>(schema: T) {
     return Type.Unsafe<Static<T> | null>({
         ...schema,
-        type: [schema.type, "null"],
+        type: [(schema as any).type, "null"],
     });
 }
 
-function Email(options?: StringOptions) {
-    return Type.String({ ...options, format: "email" });
+function Email(options?: TStringOptions) {
+    return Type.String({ format: "email", ...options });
 }
 
-function DateExtended(options?: SchemaOptions) {
-    return Type.Union(
-        [Type.String({ format: "date-time" }), Type.Date()],
-        options,
+function Date(options?: TSchemaOptions) {
+    return Type.Refine(
+        Type.Unsafe<Date>(options ?? {}),
+        (value) => value instanceof Date,
+        "Expected a Date or ISO date-time string",
     );
+}
+
+function DateExtended(options?: TSchemaOptions) {
+    return Type.Union([
+        Date(options),
+        Type.String({ format: "date-time", ...options }),
+        Type.String({ format: "date", ...options }),
+    ]);
 }
 
 function ExtendedTypeBox() {
@@ -44,12 +52,16 @@ function ExtendedTypeBox() {
         StringEnum,
         Nullable,
         Email,
+        Date,
         DateExtended,
+        Composite: (items: TSchema[], options?: TSchemaOptions) => {
+            return Type.Evaluate(Type.Intersect(items), options);
+        },
     };
 
     let extended = Object.setPrototypeOf(extension, Type);
 
-    return extended as typeof extension & JavaScriptTypeBuilder;
+    return extended as typeof extension & typeof Type;
 }
 
 export const Schema = ExtendedTypeBox();

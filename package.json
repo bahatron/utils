@@ -6,8 +6,8 @@
     "types": "lib/index.d.ts",
     "scripts": {
         "test": "vitest run",
-        "watch": "tsc -b -w tsconfig.build.json",
-        "build": "tsc -p tsconfig.build.json && dts-bundle-generator --external-inlines @sinclair/typebox jsonschema -o lib/index.d.ts src/index.ts",
+        "watch": "npm run build -- --watch",
+        "build": "tsc -p tsconfig.build.json",
         "build:clean": "rm -rf lib && npm run build",
         "preversion": "npm run build:clean && npm run test",
         "prepare": "husky"
@@ -23,15 +23,14 @@
     },
     "homepage": "https://github.com/bahatron/utils#readme",
     "devDependencies": {
-        "@types/node": "^20.19.30",
-        "dts-bundle-generator": "^9.5.1",
+        "@types/node": "^25.3.5",
         "husky": "^9.1.7",
-        "vitest": "^3.1.1",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "vitest": "^3.2.4"
     },
     "dependencies": {
-        "@sinclair/typebox": "^0.34.48",
-        "fast-safe-stringify": "^2.1.1",
-        "jsonschema": "^1.5.0"
+        "fast-safe-stringify": "=2.1.1",
+        "jsonschema": "=1.5.0",
+        "typebox": "=1.1.6"
     }
 }

@@ -1,4 +1,4 @@
-import { TSchema, Static, Type } from "@sinclair/typebox";
+import { TSchema, Static } from "typebox";
 import jsonschema, { Schema } from "jsonschema";
 import { ValidationFailed } from "../error";
 
