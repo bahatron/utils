@@ -1,4 +1,4 @@
-import { Schema } from "../src/json-schema";
+import { Schema } from "@bahatron/utils/lib/json-schema/schema";
 
 let nullableString = Schema.Nullable(Schema.String());
 let nullableArray = Schema.Nullable(Schema.Array(Schema.Number()));

@@ -5,7 +5,7 @@
         "moduleResolution": "nodenext",
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "declaration": false,
+        "declaration": true,
         "diagnostics": true,
         "incremental": true,
         "sourceMap": true,

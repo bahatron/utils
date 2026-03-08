@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "esModuleInterop": true,
+        "strict": true,
+        "declaration": true,
+        "noEmit": false,
+        "outDir": "dist",
+        "skipLibCheck": false
+    },
+    "include": [
+        "*.ts"
+    ]
+}

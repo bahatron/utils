@@ -1,5 +1,5 @@
-import { Logger } from "../src";
-import { jsonStringify } from "../src/helpers";
+import { Logger } from "@bahatron/utils";
+import { jsonStringify } from "@bahatron/utils/lib/helpers/json-stringify";
 
 let logger = Logger.Create({
     formatter: (entry) => {
