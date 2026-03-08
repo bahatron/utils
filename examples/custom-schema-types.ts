@@ -1,20 +1,45 @@
-import { Schema } from "@bahatron/utils/lib/json-schema/schema";
+import {
+    Static,
+    TArray,
+    TObject,
+    TSchema,
+    TUnsafe,
+    Schema,
+} from "@bahatron/utils/lib/json-schema";
 
-let nullableString = Schema.Nullable(Schema.String());
-let nullableArray = Schema.Nullable(Schema.Array(Schema.Number()));
-let nullableEnum = Schema.Nullable(
-    Schema.StringEnum(["a", "b", "c"], { description: "some enum values" }),
-);
-let nullableObject = Schema.Nullable(
-    Schema.Object({
-        id: Schema.Number(),
-        name: Schema.Nullable(Schema.String()),
-        email: Schema.Nullable(Schema.Email()),
-        createdAt: Schema.Nullable(Schema.DateExtended()),
-    }),
-);
+export type Money = Static<ReturnType<typeof Money>>;
+export function Money(description: string) {
+    return Schema.Nullable(
+        Schema.Object(
+            {
+                amount: Schema.Nullable(Schema.Number()),
+                currency: Schema.Nullable(
+                    Schema.StringEnum(["gbp", "usd", "eur"]),
+                ),
+            },
+            {
+                description: description,
+            },
+        ),
+    );
+}
 
-console.log("Nullable String Schema:", JSON.stringify(nullableString, null, 2));
-console.log("Nullable Array Schema:", JSON.stringify(nullableArray, null, 2));
-console.log("Nullable Enum Schema:", JSON.stringify(nullableEnum, null, 2));
-console.log("Nullable Object Schema:", JSON.stringify(nullableObject, null, 2));
+export type Percentage = Static<ReturnType<typeof Percentage>>;
+export function Percentage(description: string) {
+    return Schema.Nullable(
+        Schema.Object(
+            {
+                value: Schema.Nullable(Schema.Number({})),
+                display: Schema.Nullable(
+                    Schema.String({
+                        description:
+                            "Percentage value as string, e.g. '75%' with context around the percentage if available",
+                    }),
+                ),
+            },
+            {
+                description,
+            },
+        ),
+    );
+}
