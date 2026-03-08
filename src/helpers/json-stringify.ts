@@ -9,8 +9,3 @@ export function jsonStringify(
         ? value
         : fastSafeStringify(value, replacer ?? undefined, spaces);
 }
-
-/**
- * @deprecated use jsonStringify instead
- */
-export { jsonStringify as stringify };

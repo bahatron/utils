@@ -2,32 +2,32 @@ import { sleep } from "./sleep";
 
 export interface RetryOptions {
     tries?: number;
-    timeout?: number;
     factor?: number;
+    baseDelay?: number;
 }
 
 /**
- * @param timeout in milliseconds, defaults to 0
- * @param factor integer for exponential backoff, defaults to 1
+ * @param factor integer denominator for exponential backoff, defaults to 1. A factor of one means no exponential backoff, i.e. a constant delay between retries. A factor of 2 means the delay doubles with each retry, etc.
+ * @param baseDelay base delay in ms, defaults to 100
  * @param tries defaults to 3
  */
 export function retry<T>(
     handler: () => T,
-    { tries = 3, timeout = 0, factor = 1 }: RetryOptions = {},
+    { tries = 3, factor = 1, baseDelay = 100 }: RetryOptions = {},
 ) {
-    let retrier = async (tryNumber = 0): Promise<T> => {
+    let retrier = async (attempt = 0): Promise<Awaited<T>> => {
         try {
             return await handler();
         } catch (err) {
+            if (attempt >= tries) throw err;
+
             let waitTime = Math.floor(
-                100 * Math.random() + timeout * Math.pow(factor, tryNumber + 1),
+                baseDelay * Math.pow(factor, attempt + 1) + 50 * Math.random(),
             );
 
             await sleep(waitTime);
 
-            if (tryNumber >= tries) throw err;
-
-            return retrier(tryNumber + 1);
+            return retrier(attempt + 1);
         }
     };
 

@@ -48,35 +48,33 @@ export default function Logger(options: CreateLoggerOptions = {}) {
         ? formatter
         : jsonStringify;
 
-    function _print(params: {
+    function entry(params: {
         level: LoggerLevel;
         message?: string;
         context?: any;
-    }) {
+    }): LogEntry {
         let { message, context, level } = params;
-
-        if (LoggerLevelValue[level] < _minLogLevel) return;
-
-        let timestamp = new Date();
 
         let shouldLogContext = Boolean(
             ["string", "number"].includes(typeof context) && !message,
         );
 
-        let entry: LogEntry = {
-            timestamp,
+        return {
+            timestamp: new Date(),
             id: typeof _id == "function" ? _id() : _id,
             level,
             message: shouldLogContext ? context : message,
             context: shouldLogContext ? undefined : context,
         };
+    }
+
+    function print(entry: LogEntry) {
+        if (LoggerLevelValue[entry.level] < _minLogLevel) return;
 
         let log = _formatter(entry);
 
         try {
-            typeof log === "string"
-                ? process.stdout.write(`${log}\n`)
-                : console.log(log);
+            process.stdout.write(`${log}\n`);
         } catch (e) {
             console.log(log);
         }
@@ -105,21 +103,12 @@ export default function Logger(options: CreateLoggerOptions = {}) {
             _bus.off(event, job);
         },
 
-        debug(context: any, message?: string): void {
-            _bus.emit(
-                LoggerLevel.DEBUG,
-                _print({
-                    level: LoggerLevel.DEBUG,
-                    message,
-                    context: LogContext(context),
-                }),
-            );
-        },
-
-        info(context: any, message?: string): void {
-            _bus.emit(
-                LoggerLevel.INFO,
-                _print({
+        /**
+         * @description console log for browser's convenience
+         */
+        log(context: any, message?: string): void {
+            console.log(
+                entry({
                     level: LoggerLevel.INFO,
                     message,
                     context: LogContext(context),
@@ -127,39 +116,55 @@ export default function Logger(options: CreateLoggerOptions = {}) {
             );
         },
 
-        warn(context: any, message?: string): void {
+        debug(context: any, message?: string): void {
             _bus.emit(
-                LoggerLevel.WARNING,
-                _print({
-                    level: LoggerLevel.WARNING,
-                    message: message,
-                    context: LogContext(context),
-                }),
+                LoggerLevel.DEBUG,
+                print(
+                    entry({
+                        level: LoggerLevel.DEBUG,
+                        message,
+                        context: LogContext(context),
+                    }),
+                ),
             );
         },
 
-        /**
-         * @deprecated use warn instead
-         */
-        warning(context: any, message?: string): void {
+        info(context: any, message?: string): void {
+            _bus.emit(
+                LoggerLevel.INFO,
+                print(
+                    entry({
+                        level: LoggerLevel.INFO,
+                        message,
+                        context: LogContext(context),
+                    }),
+                ),
+            );
+        },
+
+        warn(context: any, message?: string): void {
             _bus.emit(
                 LoggerLevel.WARNING,
-                _print({
-                    level: LoggerLevel.WARNING,
-                    message: message,
-                    context: LogContext(context),
-                }),
+                print(
+                    entry({
+                        level: LoggerLevel.WARNING,
+                        message,
+                        context: LogContext(context),
+                    }),
+                ),
             );
         },
 
         error(err: any, message?: string): void {
             _bus.emit(
                 LoggerLevel.ERROR,
-                _print({
-                    level: LoggerLevel.ERROR,
-                    message: message ?? err?.message,
-                    context: LogContext(err),
-                }),
+                print(
+                    entry({
+                        level: LoggerLevel.ERROR,
+                        message: message ?? err?.message,
+                        context: LogContext(err),
+                    }),
+                ),
             );
         },
     };
