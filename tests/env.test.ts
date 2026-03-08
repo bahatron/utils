@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { getenv } from "../src/helpers/get-env";
 
 describe("getenv", () => {

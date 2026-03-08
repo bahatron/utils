@@ -107,10 +107,10 @@ const result = await Helpers.retry(
         return await unstableApiCall();
     },
     {
-        tries: 5,        // Number of retry attempts (default: 3)
-        timeout: 1000,   // Base timeout in ms (default: 0)
-        factor: 2,       // Exponential backoff factor (default: 1)
-    }
+        tries: 5, // Number of retry attempts (default: 3)
+        baseDelay: 1000, // Base timeout in ms (default: 0)
+        factor: 2, // Exponential backoff factor (default: 1)
+    },
 );
 ```
 
@@ -162,7 +162,7 @@ import { Helpers } from "@bahatron/utils";
 const obj = Helpers.jsonParse('{"valid": "json"}');
 // Returns: { valid: "json" }
 
-const invalid = Helpers.jsonParse('invalid json');
+const invalid = Helpers.jsonParse("invalid json");
 // Returns: undefined (instead of throwing)
 ```
 
@@ -219,7 +219,7 @@ const user = JsonSchema.validate(
         bio: null,
         createdAt: new Date(),
     },
-    UserSchema
+    UserSchema,
 );
 
 // TypeScript knows the exact type
@@ -314,6 +314,7 @@ Pre-configured HTTP exception classes for common error scenarios.
 ### Available Exceptions
 
 All exceptions include:
+
 - `name` - Error name
 - `message` - Error message
 - `statusCode` / `code` - HTTP status code
@@ -353,11 +354,11 @@ import { Error } from "@bahatron/utils";
 
 function getUser(id: number) {
     const user = db.users.find(id);
-    
+
     if (!user) {
         throw Error.NotFound({ userId: id }, "User not found");
     }
-    
+
     return user;
 }
 
@@ -365,8 +366,8 @@ try {
     const user = getUser(123);
 } catch (err) {
     console.error(err.statusCode); // 404
-    console.error(err.message);    // "User not found"
-    console.error(err.context);    // { userId: 123 }
+    console.error(err.message); // "User not found"
+    console.error(err.context); // { userId: 123 }
 }
 ```
 

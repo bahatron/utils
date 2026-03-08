@@ -49,7 +49,7 @@ async function example() {
             await sleep(10);
             return 42;
         },
-        { tries: 3, timeout: 100 },
+        { tries: 3, baseDelay: 100 },
     );
 
     console.log("Retry result:", result);

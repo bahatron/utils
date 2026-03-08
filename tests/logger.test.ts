@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { Logger } from "../src";
 
 const LOGGER_TEST_PAYLOAD = {
@@ -35,7 +36,7 @@ describe("pretty print", () => {
     });
 
     it("pretty warning", async () => {
-        _logger.warning(["rick", "sanchez", "c-137"], "warning");
+        _logger.warn(["rick", "sanchez", "c-137"], "warning");
     });
 
     it("pretty error", async () => {
@@ -91,7 +92,7 @@ describe("nested context building", () => {
 
         logger.info(() => "nameless function", "nameless function");
 
-        logger.warning("no context no problem");
+        logger.warn("no context no problem");
 
         logger.error(null, "a null");
     });

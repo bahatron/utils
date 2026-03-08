@@ -1,10 +1,11 @@
-import { stringify } from "../src/helpers";
+import { describe, it, expect } from "vitest";
+import { jsonStringify } from "../src/helpers";
 
-describe.only("stringify", () => {
+describe("jsonStringify", () => {
     it("does not scape stringified jsons", () => {
         let jsonString = `{"abc": 123}`;
 
-        let result = stringify(jsonString);
+        let result = jsonStringify(jsonString);
 
         expect(JSON.parse(jsonString)).toEqual(JSON.parse(result));
     });
