@@ -1,5 +1,3 @@
-import { Falsy } from "../types/falsy";
-
 export type Handler<R = any> = (payload: R) => void;
 export type OnEventHandler<T = any, R = any> = (event: T, payload: R) => void;
 export type Observable = ReturnType<typeof Observable>;

@@ -1,7 +1,5 @@
 import {
     Static,
-    TEvaluate,
-    TIntersect,
     TSchema,
     TSchemaOptions,
     TStringOptions,
@@ -46,14 +44,6 @@ function DateExtended(options?: TSchemaOptions) {
         Type.String({ format: "date-time", ...options }),
         Type.String({ format: "date", ...options }),
     ]);
-}
-
-// the return type hint is necessary, which is not too cool
-function CompositeV1<T extends TSchema[]>(
-    schemas: [...T],
-    options?: TSchemaOptions,
-): TEvaluate<TIntersect<T>> {
-    return Type.Evaluate(Type.Intersect(schemas), options);
 }
 
 function Composite<T extends TSchema[]>(

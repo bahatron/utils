@@ -30,23 +30,23 @@ export interface CreateLoggerOptions {
     /** @description a function can be supplied to capture async context and have a dynamic logger tracing */
     id?: string | (() => string);
     /** @description the output of this function will be printed. defaults to single line json object */
-    formatter?: (entry: LogEntry) => string | object;
+    formatter?: (entry: LogEntry) => string;
     /** @description min logger level, defaults to DEBUG (all logs) */
     minLogLevel?: LoggerLevel;
 }
 
 export type Logger = ReturnType<typeof Logger>;
 export default function Logger(options: CreateLoggerOptions = {}) {
-    let { minLogLevel = LoggerLevel.DEBUG, id: _id, formatter } = options;
+    let {
+        minLogLevel = LoggerLevel.DEBUG,
+        id: _id,
+        formatter: _formatter = jsonStringify,
+    } = options;
 
-    let _minLogLevel = LoggerLevelValue[minLogLevel];
+    let _logLevel = LoggerLevelValue[minLogLevel];
 
     let _bus = Observable();
     let _stack: Set<Function> = new Set();
-
-    let _formatter: NonNullable<CreateLoggerOptions["formatter"]> = formatter
-        ? formatter
-        : jsonStringify;
 
     function entry(params: {
         level: LoggerLevel;
@@ -69,7 +69,7 @@ export default function Logger(options: CreateLoggerOptions = {}) {
     }
 
     function print(entry: LogEntry) {
-        if (LoggerLevelValue[entry.level] < _minLogLevel) return;
+        if (LoggerLevelValue[entry.level] < _logLevel) return;
 
         let log = _formatter(entry);
 
