@@ -1,5 +1,7 @@
 import {
     Static,
+    TObject,
+    TProperties,
     TSchema,
     TSchemaOptions,
     TStringOptions,
@@ -7,6 +9,23 @@ import {
     Type,
 } from "typebox";
 import { validate } from "./validator";
+
+export type TNullable<T extends TSchema> = TUnsafe<Static<T> | null> &
+    Omit<T, "~kind" | "~hint">;
+
+type ExtractProperties<T> =
+    T extends TObject<infer P>
+        ? P
+        : T extends { properties: infer P extends TProperties }
+          ? P
+          : {};
+
+type MergeAll<T extends TSchema[]> = T extends [
+    infer F extends TSchema,
+    ...infer R extends TSchema[],
+]
+    ? ExtractProperties<F> & MergeAll<R>
+    : {};
 
 function StringEnum<T extends readonly string[]>(
     values: T,
@@ -19,11 +38,14 @@ function StringEnum<T extends readonly string[]>(
     });
 }
 
-function Nullable<T extends TSchema>(schema: T) {
-    return Type.Unsafe<Static<T> | null>({
-        ...schema,
-        type: [(schema as any).type, "null"],
-    });
+function Nullable<T extends TSchema>(schema: T): TNullable<T> {
+    return Object.setPrototypeOf(
+        {
+            ...schema,
+            type: [(schema as any).type, "null"],
+        },
+        schema,
+    ) as TNullable<T>;
 }
 
 function Email(options?: TStringOptions) {
@@ -49,8 +71,8 @@ function DateExtended(options?: TSchemaOptions) {
 function Composite<T extends TSchema[]>(
     schemas: [...T],
     options?: TSchemaOptions,
-) {
-    return Type.Interface(schemas, {}, options);
+): TObject<MergeAll<T>> {
+    return Type.Interface(schemas, {}, options) as any;
 }
 
 function ExtendedTypeBox() {
