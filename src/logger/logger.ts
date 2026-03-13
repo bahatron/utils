@@ -36,7 +36,7 @@ export interface CreateLoggerOptions {
 }
 
 export type Logger = ReturnType<typeof Logger>;
-export default function Logger(options: CreateLoggerOptions = {}) {
+export function Logger(options: CreateLoggerOptions = {}) {
     let {
         minLogLevel = LoggerLevel.DEBUG,
         id: _id,

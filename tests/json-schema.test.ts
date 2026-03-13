@@ -1,6 +1,6 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import * as Schema from "../src/json-schema/schema-v2";
-import type { Static } from "../src/json-schema/schema-v2";
+import * as Schema from "../src/json-schema/schema";
+import type { Static } from "../src/json-schema/schema";
 
 describe("JsonSchema", () => {
     it("should be able to validate a schema", () => {
@@ -124,18 +124,15 @@ describe("JsonSchema", () => {
         });
 
         it("Object(props, { optional }) excludes keys from required", () => {
-            let schema = Schema.Object(
-                {
-                    name: Schema.String(),
-                    nickname: Schema.String(),
-                },
-                { optional: ["nickname"] },
-            );
+            let schema = Schema.Object({
+                name: Schema.String(),
+                nickname: Schema.String({ optional: true }),
+            });
             expect(schema).toEqual({
                 type: "object",
                 properties: {
                     name: { type: "string" },
-                    nickname: { type: "string" },
+                    nickname: { type: "string", _optional: true },
                 },
                 required: ["name"],
             });
@@ -156,14 +153,11 @@ describe("JsonSchema", () => {
 
     describe("Static type inference", () => {
         it("infers correct type for Object with required + optional", () => {
-            let schema = Schema.Object(
-                {
-                    name: Schema.String(),
-                    age: Schema.Number(),
-                    bio: Schema.String(),
-                },
-                { optional: ["bio"] },
-            );
+            let schema = Schema.Object({
+                name: Schema.String(),
+                age: Schema.Number(),
+                bio: Schema.String({ optional: true }),
+            });
             type Result = Static<typeof schema>;
             expectTypeOf<Result>().toEqualTypeOf<{
                 name: string;

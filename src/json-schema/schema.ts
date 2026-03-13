@@ -1,94 +1,209 @@
-import {
-    Static,
-    TObject,
-    TProperties,
-    TSchema,
-    TSchemaOptions,
-    TStringOptions,
-    TUnsafe,
-    Type,
-} from "typebox";
+import { type Schema as JsonSchemaDefinition } from "jsonschema";
 import { validate } from "./validator";
 
-export type TNullable<T extends TSchema> = TUnsafe<Static<T> | null> &
-    Omit<T, "~kind" | "~hint">;
+// ─── Branded Schema Type ─────────────────────────────────────────────────────
 
-type ExtractProperties<T> =
-    T extends TObject<infer P>
-        ? P
-        : T extends { properties: infer P extends TProperties }
-          ? P
-          : {};
+declare const phantom: unique symbol;
+declare const optionalBrand: unique symbol;
 
-type MergeAll<T extends TSchema[]> = T extends [
-    infer F extends TSchema,
-    ...infer R extends TSchema[],
-]
-    ? ExtractProperties<F> & MergeAll<R>
-    : {};
+export type TSchema<T = unknown> = JsonSchemaDefinition & {
+    readonly [phantom]: T;
+};
 
-function StringEnum<T extends readonly string[]>(
-    values: T,
-    options?: TStringOptions,
-): TUnsafe<T[number]> {
-    return Type.Unsafe<T[number]>({
-        type: "string",
-        enum: values,
-        ...options,
-    });
+export type TOptionalSchema<T = unknown> = TSchema<T> & {
+    readonly [optionalBrand]: true;
+};
+
+export type Static<T> =
+    T extends TOptionalSchema<infer U>
+        ? U
+        : T extends TSchema<infer U>
+          ? U
+          : never;
+
+// ─── Shared Options ──────────────────────────────────────────────────────────
+
+type NullableOpt = { nullable?: boolean };
+type OptionalOpt = { optional?: boolean };
+type BaseOpts = NullableOpt & OptionalOpt;
+
+type ResolveNullable<Base, Opts extends NullableOpt> = Opts extends {
+    nullable: true;
 }
+    ? Base | null
+    : Base;
 
-function Nullable<T extends TSchema>(schema: T): TNullable<T> {
-    return Object.setPrototypeOf(
-        {
-            ...schema,
-            type: [(schema as any).type, "null"],
-        },
-        schema,
-    ) as TNullable<T>;
-}
+type ResolveOptional<T, Opts> = Opts extends { optional: true }
+    ? TOptionalSchema<T>
+    : TSchema<T>;
 
-function Email(options?: TStringOptions) {
-    return Type.String({ format: "email", ...options });
-}
+// ─── String ──────────────────────────────────────────────────────────────────
 
-function Date(options?: TSchemaOptions) {
-    return Type.Refine(
-        Type.Unsafe<Date>(options ?? {}),
-        (value) => value instanceof Date,
-        "Expected a Date or ISO date-time string",
-    );
-}
+type StringOptions = BaseOpts & {
+    enum?: readonly string[];
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    format?: string;
+    description?: string;
+    default?: string;
+};
 
-function DateExtended(options?: TSchemaOptions) {
-    return Type.Union([
-        Date(options),
-        Type.String({ format: "date-time", ...options }),
-        Type.String({ format: "date", ...options }),
-    ]);
-}
+type ResolveString<Opts extends StringOptions> = ResolveNullable<
+    Opts extends { enum: readonly (infer V)[] } ? V : string,
+    Opts
+>;
 
-function Composite<T extends TSchema[]>(
-    schemas: [...T],
-    options?: TSchemaOptions,
-): TObject<MergeAll<T>> {
-    return Type.Interface(schemas, {}, options) as any;
-}
-
-function ExtendedTypeBox() {
-    let extension = {
-        validate,
-        StringEnum,
-        Nullable,
-        Email,
-        Date,
-        DateExtended,
-        Composite,
+function String<const Opts extends StringOptions>(
+    options?: Opts,
+): ResolveOptional<ResolveString<Opts extends undefined ? {} : Opts>, Opts> {
+    let {
+        nullable,
+        optional,
+        enum: enumValues,
+        ...rest
+    } = options ?? ({} as any);
+    let schema: any = {
+        ...rest,
+        type: nullable ? ["string", "null"] : "string",
+        ...(enumValues ? { enum: enumValues } : {}),
     };
-
-    let extended = Object.setPrototypeOf(extension, Type);
-
-    return extended as typeof extension & typeof Type;
+    if (optional) schema._optional = true;
+    return schema;
 }
 
-export const Schema = ExtendedTypeBox();
+// ─── Number ──────────────────────────────────────────────────────────────────
+
+type NumberOptions = BaseOpts & {
+    enum?: readonly number[];
+    minimum?: number;
+    maximum?: number;
+    exclusiveMinimum?: number | boolean;
+    exclusiveMaximum?: number | boolean;
+    multipleOf?: number;
+    description?: string;
+    default?: number;
+};
+
+type ResolveNumber<Opts extends NumberOptions> = ResolveNullable<
+    Opts extends { enum: readonly (infer V)[] } ? V : number,
+    Opts
+>;
+
+function Number<const Opts extends NumberOptions>(
+    options?: Opts,
+): ResolveOptional<ResolveNumber<Opts extends undefined ? {} : Opts>, Opts> {
+    let {
+        nullable,
+        optional,
+        enum: enumValues,
+        ...rest
+    } = options ?? ({} as any);
+    let schema: any = {
+        ...rest,
+        type: nullable ? ["number", "null"] : "number",
+        ...(enumValues ? { enum: enumValues } : {}),
+    };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
+// ─── Boolean ─────────────────────────────────────────────────────────────────
+
+type BooleanOptions = BaseOpts & {
+    description?: string;
+    default?: boolean;
+};
+
+type ResolveBoolean<Opts extends NullableOpt> = ResolveNullable<boolean, Opts>;
+
+function Boolean<const Opts extends BooleanOptions = BooleanOptions>(
+    options?: Opts,
+): ResolveOptional<ResolveBoolean<Opts>, Opts> {
+    let { nullable, optional, ...rest } = options ?? ({} as any);
+    let schema: any = {
+        ...rest,
+        type: nullable ? ["boolean", "null"] : "boolean",
+    };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
+// ─── Array ───────────────────────────────────────────────────────────────────
+
+type ArrayOptions = BaseOpts & {
+    minItems?: number;
+    maxItems?: number;
+    uniqueItems?: boolean;
+    description?: string;
+};
+
+type ResolveArray<Item, Opts extends NullableOpt> = ResolveNullable<
+    Item[],
+    Opts
+>;
+
+function Array<T, const Opts extends ArrayOptions = ArrayOptions>(
+    items: TSchema<T>,
+    options?: Opts,
+): ResolveOptional<ResolveArray<T, Opts>, Opts> {
+    let { nullable, optional, ...rest } = options ?? ({} as any);
+    let schema: any = {
+        ...rest,
+        type: nullable ? ["array", "null"] : "array",
+        items,
+    };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
+// ─── Object ──────────────────────────────────────────────────────────────────
+
+type PropertySchemas = Record<string, TSchema<any> | TOptionalSchema<any>>;
+
+type ObjectOptions = NullableOpt & {
+    additionalProperties?: boolean;
+    description?: string;
+};
+
+type RequiredKeys<P extends PropertySchemas> = {
+    [K in keyof P]: P[K] extends TOptionalSchema<any> ? never : K;
+}[keyof P];
+
+type OptionalKeys<P extends PropertySchemas> = {
+    [K in keyof P]: P[K] extends TOptionalSchema<any> ? K : never;
+}[keyof P];
+
+type ResolveObjectProperties<P extends PropertySchemas> = {
+    [K in RequiredKeys<P>]: Static<P[K]>;
+} & {
+    [K in OptionalKeys<P>]?: Static<P[K]>;
+};
+
+type Simplify<T> = { [K in keyof T]: T[K] } & {};
+
+type ResolveObject<
+    P extends PropertySchemas,
+    Opts extends NullableOpt,
+> = ResolveNullable<Simplify<ResolveObjectProperties<P>>, Opts>;
+
+function Object<
+    P extends PropertySchemas,
+    const Opts extends ObjectOptions = ObjectOptions,
+>(properties: P, options?: Opts): TSchema<ResolveObject<P, Opts>> {
+    let { nullable, additionalProperties, ...rest } = options ?? ({} as any);
+    let allKeys = globalThis.Object.keys(properties);
+    let required = allKeys.filter((k) => !(properties[k] as any)?._optional);
+
+    return {
+        ...rest,
+        type: nullable ? ["object", "null"] : "object",
+        properties,
+        ...(required.length ? { required } : {}),
+        ...(additionalProperties !== undefined ? { additionalProperties } : {}),
+    } as any;
+}
+
+// ─── Schema Export ───────────────────────────────────────────────────────────
+
+export { String, Number, Boolean, Array, Object, validate };
