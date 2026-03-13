@@ -1,7 +1,6 @@
 import { jsonStringify } from "../helpers/json-stringify";
 import { LogContext } from "./context";
 import { Handler, Observable } from "../observable";
-import { PrettyFormatter } from "./formatters";
 
 export type LoggerLevel = keyof typeof LoggerLevel;
 export const LoggerLevel = {
