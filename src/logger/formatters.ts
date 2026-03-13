@@ -14,7 +14,7 @@ const ERROR_LEVEL_COLOR = {
     [LoggerLevel.ERROR]: red,
 };
 
-export function PrettyFormatter(entry: LogEntry) {
+export function Pretty(entry: LogEntry) {
     let { timestamp, message, level, id, context } = entry;
 
     function _level() {
@@ -36,7 +36,11 @@ export function PrettyFormatter(entry: LogEntry) {
     return `[${timestamp.toISOString()}] ${_level()}${_id()}${_message()}${_context()}`;
 }
 
-export function YmlFormatter(context: any, __level = 0): string {
+export function Yml(context: any): string {
+    return formatYml(context);
+}
+
+function formatYml(context: any, __level = 0): string {
     let indentation = () => `\n${" ".repeat((__level + 1) * 4)}`;
     let valuePrint = (val: any) => `${val}`;
 
@@ -45,7 +49,7 @@ export function YmlFormatter(context: any, __level = 0): string {
             return carry.concat(
                 `${indentation()}${key}: ${
                     hasEntries(value)
-                        ? YmlFormatter(value, __level + 1)
+                        ? formatYml(value, __level + 1)
                         : valuePrint(value)
                 }`,
             );

@@ -120,6 +120,45 @@ type ResolveOptional<T, Opts> = Opts extends { optional: true }
     ? TOptionalSchema<T>
     : TSchema<T>;
 
+type Simplify<T> = { [K in keyof T]: T[K] } & {};
+
+type ResolveEnum<Base, Opts extends NullableOpt> = ResolveNullable<
+    Opts extends { enum: readonly (infer V)[] } ? V : Base,
+    Opts
+>;
+
+// ─── Runtime Helpers ─────────────────────────────────────────────────────────
+
+function buildPrimitiveSchema(typeName: string, options: any): any {
+    let {
+        nullable,
+        optional,
+        enum: enumValues,
+        ...rest
+    } = options ?? ({} as any);
+    let schema: any = {
+        ...rest,
+        type: nullable ? [typeName, "null"] : typeName,
+        ...(enumValues ? { enum: enumValues } : {}),
+    };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
+function buildUnionSchema(
+    key: "anyOf" | "oneOf",
+    schemas: any[],
+    options: any,
+): any {
+    let { nullable, optional, ...rest } = options ?? ({} as any);
+    let schema: any = {
+        ...rest,
+        [key]: nullable ? [...schemas, { type: "null" }] : schemas,
+    };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
 // ─── Const ───────────────────────────────────────────────────────────────────
 
 type ConstOptions = Omit<BaseOpts, "nullable">;
@@ -159,11 +198,6 @@ type StringOptions = BaseOpts & {
     default?: string;
 };
 
-type ResolveString<Opts extends StringOptions> = ResolveNullable<
-    Opts extends { enum: readonly (infer V)[] } ? V : string,
-    Opts
->;
-
 /**
  * @description Creates a JSON Schema for a string type. Supports enum constraints to narrow
  * the type to specific literal values, nullable to allow null, and optional to mark the
@@ -181,20 +215,11 @@ type ResolveString<Opts extends StringOptions> = ResolveNullable<
  */
 function String<const Opts extends StringOptions>(
     options?: Opts,
-): ResolveOptional<ResolveString<Opts extends undefined ? {} : Opts>, Opts> {
-    let {
-        nullable,
-        optional,
-        enum: enumValues,
-        ...rest
-    } = options ?? ({} as any);
-    let schema: any = {
-        ...rest,
-        type: nullable ? ["string", "null"] : "string",
-        ...(enumValues ? { enum: enumValues } : {}),
-    };
-    if (optional) schema._optional = true;
-    return schema;
+): ResolveOptional<
+    ResolveEnum<string, Opts extends undefined ? {} : Opts>,
+    Opts
+> {
+    return buildPrimitiveSchema("string", options);
 }
 
 // ─── Number ──────────────────────────────────────────────────────────────────
@@ -208,11 +233,6 @@ type NumberOptions = BaseOpts & {
     multipleOf?: number;
     default?: number;
 };
-
-type ResolveNumber<Opts extends NumberOptions> = ResolveNullable<
-    Opts extends { enum: readonly (infer V)[] } ? V : number,
-    Opts
->;
 
 /**
  * @description Creates a JSON Schema for a number type. Supports enum constraints to narrow
@@ -231,20 +251,11 @@ type ResolveNumber<Opts extends NumberOptions> = ResolveNullable<
  */
 function Number<const Opts extends NumberOptions>(
     options?: Opts,
-): ResolveOptional<ResolveNumber<Opts extends undefined ? {} : Opts>, Opts> {
-    let {
-        nullable,
-        optional,
-        enum: enumValues,
-        ...rest
-    } = options ?? ({} as any);
-    let schema: any = {
-        ...rest,
-        type: nullable ? ["number", "null"] : "number",
-        ...(enumValues ? { enum: enumValues } : {}),
-    };
-    if (optional) schema._optional = true;
-    return schema;
+): ResolveOptional<
+    ResolveEnum<number, Opts extends undefined ? {} : Opts>,
+    Opts
+> {
+    return buildPrimitiveSchema("number", options);
 }
 
 // ─── Boolean ─────────────────────────────────────────────────────────────────
@@ -252,8 +263,6 @@ function Number<const Opts extends NumberOptions>(
 type BooleanOptions = BaseOpts & {
     default?: boolean;
 };
-
-type ResolveBoolean<Opts extends NullableOpt> = ResolveNullable<boolean, Opts>;
 
 /**
  * @description Creates a JSON Schema for a boolean type. Supports nullable to allow null
@@ -269,14 +278,8 @@ type ResolveBoolean<Opts extends NullableOpt> = ResolveNullable<boolean, Opts>;
  */
 function Boolean<const Opts extends BooleanOptions = BooleanOptions>(
     options?: Opts,
-): ResolveOptional<ResolveBoolean<Opts>, Opts> {
-    let { nullable, optional, ...rest } = options ?? ({} as any);
-    let schema: any = {
-        ...rest,
-        type: nullable ? ["boolean", "null"] : "boolean",
-    };
-    if (optional) schema._optional = true;
-    return schema;
+): ResolveOptional<ResolveNullable<boolean, Opts>, Opts> {
+    return buildPrimitiveSchema("boolean", options);
 }
 
 // ─── Array ───────────────────────────────────────────────────────────────────
@@ -286,11 +289,6 @@ type ArrayOptions = BaseOpts & {
     maxItems?: number;
     uniqueItems?: boolean;
 };
-
-type ResolveArray<Item, Opts extends NullableOpt> = ResolveNullable<
-    Item[],
-    Opts
->;
 
 /**
  * @description Creates a JSON Schema for an array type. The first parameter defines the
@@ -309,7 +307,7 @@ type ResolveArray<Item, Opts extends NullableOpt> = ResolveNullable<
 function Array<T, const Opts extends ArrayOptions = ArrayOptions>(
     items: TSchema<T>,
     options?: Opts,
-): ResolveOptional<ResolveArray<T, Opts>, Opts> {
+): ResolveOptional<ResolveNullable<T[], Opts>, Opts> {
     let { nullable, optional, ...rest } = options ?? ({} as any);
     let schema: any = {
         ...rest,
@@ -341,8 +339,6 @@ type ResolveObjectProperties<P extends PropertySchemas> = {
 } & {
     [K in OptionalKeys<P>]?: Static<P[K]>;
 };
-
-type Simplify<T> = { [K in keyof T]: T[K] } & {};
 
 type ResolveObject<
     P extends PropertySchemas,
@@ -529,13 +525,7 @@ function AnyOf<
     schemas: [...T],
     options?: Opts,
 ): ResolveOptional<ResolveNullable<ResolveUnion<T>, Opts>, Opts> {
-    let { nullable, optional, ...rest } = options ?? ({} as any);
-    let schema: any = {
-        ...rest,
-        anyOf: nullable ? [...schemas, { type: "null" }] : schemas,
-    };
-    if (optional) schema._optional = true;
-    return schema;
+    return buildUnionSchema("anyOf", schemas, options);
 }
 
 /**
@@ -561,13 +551,7 @@ function OneOf<
     schemas: [...T],
     options?: Opts,
 ): ResolveOptional<ResolveNullable<ResolveUnion<T>, Opts>, Opts> {
-    let { nullable, optional, ...rest } = options ?? ({} as any);
-    let schema: any = {
-        ...rest,
-        oneOf: nullable ? [...schemas, { type: "null" }] : schemas,
-    };
-    if (optional) schema._optional = true;
-    return schema;
+    return buildUnionSchema("oneOf", schemas, options);
 }
 
 // ─── Recursive ──────────────────────────────────────────────────────────────

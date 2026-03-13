@@ -1,12 +1,11 @@
 // ─── String ──────────────────────────────────────────────────────────────────
 
-import { JsonSchema } from "../src";
 import { type Static, Schema } from "../src/json-schema";
 import { Logger } from "../src";
-import { log } from "node:console";
+import { Formatters } from "../src/logger";
 
-let logger = Logger.Create({
-    formatter: Logger.Formatters.Pretty,
+let logger = Logger.Logger({
+    formatter: Formatters.Pretty,
 });
 
 let stringType = Schema.String();
@@ -318,7 +317,7 @@ const baseSchema = {
 } as const;
 
 type IBaseSchema = Static<typeof baseSchema>;
-log({ baseSchema }, "=== Base schema ===");
+logger.info({ baseSchema }, "=== Base schema ===");
 
 // ─── Schema.From (no `as const` needed) ─────────────────────────────────────
 
@@ -332,7 +331,7 @@ const fromSchema = Schema.From({
     required: ["name", "age"],
 });
 type IFromSchema = Static<typeof fromSchema>;
-log({ fromSchema }, "=== From schema ===");
+logger.info({ fromSchema }, "=== From schema ===");
 // { name: string; age: number; active?: boolean }
 
 // ─── Composite ───────────────────────────────────────────────────────────────

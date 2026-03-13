@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Logger } from "../src";
+import { Formatters, Logger } from "../src/logger";
 
 const LOGGER_TEST_PAYLOAD = {
     foo: "bar",
@@ -25,7 +25,7 @@ const LOGGER_TEST_PAYLOAD = {
 };
 
 describe("pretty print", () => {
-    const _logger = Logger.Create({ formatter: Logger.Formatters.Pretty });
+    const _logger = Logger({ formatter: Formatters.Pretty });
 
     it("pretty debug", async () => {
         _logger.debug({ foo: "bar" }, "debug");
@@ -45,7 +45,7 @@ describe("pretty print", () => {
 });
 
 describe("no pretty settings", () => {
-    let _logger = Logger.Create({ id: "[no colours]" });
+    let _logger = Logger({ id: "[no colours]" });
 
     it("does not display colours", () => {
         let payload = [{ rick: "sanchez" }, "hello"] as const;
@@ -55,7 +55,7 @@ describe("no pretty settings", () => {
 });
 
 describe("error logging", () => {
-    let logger = Logger.Create();
+    let logger = Logger();
 
     it("formats normal errors", () => {
         logger.error(new TypeError("an error"), "Error instance");
@@ -74,8 +74,8 @@ describe("error logging", () => {
 
 describe("nested context building", () => {
     it("parses nested object keys into format", () => {
-        let logger = Logger.Create({
-            formatter: Logger.Formatters.Pretty,
+        let logger = Logger({
+            formatter: Formatters.Pretty,
             id: "nested context parsing",
         });
 
@@ -99,7 +99,7 @@ describe("nested context building", () => {
 });
 
 describe("Symbols", () => {
-    let logger = Logger.Create({
+    let logger = Logger({
         id: "symbol log",
     });
 
