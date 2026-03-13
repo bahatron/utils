@@ -376,3 +376,112 @@ logger.info(
     { fullUser, userWithAddress, nullableComposite },
     "=== Composite schemas ===",
 );
+
+// ─── AnyOf / OneOf ───────────────────────────────────────────────────────────
+
+// anyOf — value is one of several types (union)
+let stringOrNumber = Schema.AnyOf([Schema.String(), Schema.Number()]);
+type IStringOrNumber = Static<typeof stringOrNumber>; // string | number
+
+// nullable anyOf
+let stringOrNumberOrNull = Schema.AnyOf([Schema.String(), Schema.Number()], {
+    nullable: true,
+});
+type IStringOrNumberOrNull = Static<typeof stringOrNumberOrNull>; // string | number | null
+
+// anyOf with objects
+let catSchema = Schema.Object({ meow: Schema.Boolean() });
+let dogSchema = Schema.Object({ bark: Schema.Boolean() });
+let pet = Schema.AnyOf([catSchema, dogSchema]);
+type IPet = Static<typeof pet>; // { meow: boolean } | { bark: boolean }
+
+// oneOf — exactly one must match (same TS type as anyOf, stricter at validation)
+let statusSchema = Schema.OneOf([
+    Schema.String({ enum: ["active", "inactive"] as const }),
+    Schema.Number({ enum: [0, 1] as const }),
+]);
+type IStatus = Static<typeof statusSchema>; // "active" | "inactive" | 0 | 1
+
+// optional oneOf
+let optionalPet = Schema.OneOf([catSchema, dogSchema], { optional: true });
+type IOptionalPet = Static<typeof optionalPet>; // { meow: boolean } | { bark: boolean }
+
+// raw JSON schema with anyOf / oneOf (via as const or Schema.From)
+const rawAnyOf = Schema.From({
+    anyOf: [
+        { type: "string" },
+        {
+            type: "object",
+            properties: { id: { type: "number" } },
+            required: ["id"],
+        },
+    ],
+});
+type IRawAnyOf = Static<typeof rawAnyOf>; // string | { id: number }
+
+const rawOneOf = {
+    oneOf: [{ type: "number" }, { type: "boolean" }],
+} as const;
+type IRawOneOf = Static<typeof rawOneOf>; // number | boolean
+
+logger.info(
+    {
+        stringOrNumber,
+        stringOrNumberOrNull,
+        pet,
+        statusSchema,
+        optionalPet,
+        rawAnyOf,
+        rawOneOf,
+    },
+    "=== AnyOf / OneOf schemas ===",
+);
+
+// ─── Recursive ───────────────────────────────────────────────────────────────
+
+type TreeNode = { value: string; children: TreeNode[] };
+
+let treeSchema = Schema.Recursive<TreeNode>("TreeNode", (self) =>
+    Schema.Object({
+        value: Schema.String(),
+        children: Schema.Array(self),
+    }),
+);
+type ITree = Static<typeof treeSchema>; // TreeNode
+
+type LinkedListNode = { data: number; next: LinkedListNode | null };
+
+let linkedListSchema = Schema.Recursive<LinkedListNode>(
+    "LinkedListNode",
+    (self) =>
+        Schema.Object({
+            data: Schema.Number(),
+            next: Schema.AnyOf([self], { nullable: true }),
+        }),
+);
+type ILinkedList = Static<typeof linkedListSchema>; // LinkedListNode
+
+logger.info({ treeSchema, linkedListSchema }, "=== Recursive schemas ===");
+
+// ─── $schema and $id ─────────────────────────────────────────────────────────
+
+let rootSchema = Schema.Object(
+    {
+        name: Schema.String(),
+        version: Schema.String(),
+    },
+    {
+        $schema: "http://json-schema.org/draft-07/schema#",
+        $id: "https://example.com/config",
+        description: "Application configuration",
+    },
+);
+type IRootSchema = Static<typeof rootSchema>;
+// { name: string; version: string }
+
+let referenceable = Schema.Object(
+    { code: Schema.String() },
+    { $id: "https://example.com/code-block" },
+);
+
+logger.info({ rootSchema, referenceable }, "=== $schema / $id ===");
