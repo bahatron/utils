@@ -1,7 +1,6 @@
 import { Logger } from "../src";
-import { jsonStringify } from "../src/helpers/json-stringify";
 
-let logger = Logger.Create({});
+let logger = Logger.Logger({});
 
 let start = new Date();
 let entries = 100_000;
