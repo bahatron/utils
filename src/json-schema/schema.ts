@@ -1,4 +1,4 @@
-import { type Schema as JsonSchemaDefinition } from "jsonschema";
+import { type Schema as JsonSchema } from "jsonschema";
 import { validate } from "./validator";
 
 // ─── Branded Schema Type ─────────────────────────────────────────────────────
@@ -6,7 +6,7 @@ import { validate } from "./validator";
 declare const phantomBrand: unique symbol;
 declare const optionalBrand: unique symbol;
 
-export type TSchema<T = unknown> = JsonSchemaDefinition & {
+export type TSchema<T = unknown> = JsonSchema & {
     readonly [phantomBrand]: T;
 };
 
@@ -268,6 +268,91 @@ function Object<
     return schema;
 }
 
+// ─── Composite ──────────────────────────────────────────────────────────────
+
+type NullifyValues<T> = { [K in keyof T]: T[K] | null };
+
+type MergeSchemaEntry<S> =
+    null extends Static<S>
+        ? NullifyValues<Exclude<Static<S>, null>>
+        : Static<S>;
+
+type MergeSchemas<T extends readonly any[]> = T extends readonly [
+    infer First,
+    ...infer Rest,
+]
+    ? MergeSchemaEntry<First> & MergeSchemas<Rest>
+    : {};
+
+type ResolveComposite<
+    T extends readonly any[],
+    Opts extends NullableOpt,
+> = ResolveNullable<Simplify<MergeSchemas<T>>, Opts>;
+
+function Composite<
+    const T extends readonly TSchema<any>[],
+    const Opts extends ObjectOptions = ObjectOptions,
+>(
+    schemas: [...T],
+    options?: Opts,
+): ResolveOptional<ResolveComposite<T, Opts>, Opts> {
+    let mergedProperties: any = {};
+    let mergedRequired: string[] = [];
+
+    for (let schema of schemas) {
+        let s = schema as any;
+        let type = s.type;
+        let isObject =
+            type === "object" ||
+            (globalThis.Array.isArray(type) && type.includes("object"));
+
+        if (!isObject) {
+            throw new Error(
+                "Schema.Composite: all schemas must be of type 'object'",
+            );
+        }
+
+        let props = s.properties ?? {};
+        let required: string[] = s.required ?? [];
+        let isNullable =
+            globalThis.Array.isArray(type) && type.includes("null");
+
+        for (let key of globalThis.Object.keys(props)) {
+            if (isNullable) {
+                let prop = props[key];
+                let propType = prop?.type;
+                if (propType) {
+                    let types = globalThis.Array.isArray(propType)
+                        ? propType
+                        : [propType];
+                    if (!types.includes("null")) types = [...types, "null"];
+                    mergedProperties[key] = { ...prop, type: types };
+                } else {
+                    mergedProperties[key] = prop;
+                }
+            } else {
+                mergedProperties[key] = props[key];
+            }
+        }
+
+        mergedRequired.push(...required);
+    }
+
+    let uniqueRequired = [...new globalThis.Set(mergedRequired)];
+    let { nullable, optional, additionalProperties, ...rest } =
+        options ?? ({} as any);
+
+    let result: any = {
+        ...rest,
+        type: nullable ? ["object", "null"] : "object",
+        properties: mergedProperties,
+        ...(uniqueRequired.length ? { required: uniqueRequired } : {}),
+        ...(additionalProperties !== undefined ? { additionalProperties } : {}),
+    };
+    if (optional) result._optional = true;
+    return result;
+}
+
 // ─── From (raw JSON Schema → branded TSchema) ──────────────────────────────
 
 function From<const T>(schema: T): TSchema<InferRawSchema<T>> {
@@ -276,4 +361,4 @@ function From<const T>(schema: T): TSchema<InferRawSchema<T>> {
 
 // ─── Schema Export ───────────────────────────────────────────────────────────
 
-export { String, Number, Boolean, Array, Object, From, validate };
+export { String, Number, Boolean, Array, Object, Composite, From, validate };

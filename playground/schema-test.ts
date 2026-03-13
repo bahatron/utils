@@ -334,3 +334,45 @@ const fromSchema = Schema.From({
 type IFromSchema = Static<typeof fromSchema>;
 log({ fromSchema }, "=== From schema ===");
 // { name: string; age: number; active?: boolean }
+
+// ─── Composite ───────────────────────────────────────────────────────────────
+
+let userSchema = Schema.Object({
+    name: Schema.String(),
+    email: Schema.String({ format: "email" }),
+});
+
+let profileSchema = Schema.Object({
+    bio: Schema.String({ optional: true }),
+    avatar: Schema.String(),
+});
+
+// basic merge — all keys from both schemas
+let fullUser = Schema.Composite([userSchema, profileSchema]);
+type IFullUser = Static<typeof fullUser>;
+// { name: string; email: string; bio?: string; avatar: string }
+
+// nullable schema — its keys become optional in the composite
+let addressSchema = Schema.Object(
+    {
+        street: Schema.String(),
+        city: Schema.String(),
+    },
+    { nullable: true },
+);
+
+let userWithAddress = Schema.Composite([userSchema, addressSchema]);
+type IUserWithAddress = Static<typeof userWithAddress>;
+// { name: string; email: string; street: string | null; city: string | null }
+
+// composite itself can be nullable/optional
+let nullableComposite = Schema.Composite([userSchema, profileSchema], {
+    nullable: true,
+});
+type INullableComposite = Static<typeof nullableComposite>;
+// { name: string; email: string; bio?: string; avatar: string } | null
+
+logger.info(
+    { fullUser, userWithAddress, nullableComposite },
+    "=== Composite schemas ===",
+);
