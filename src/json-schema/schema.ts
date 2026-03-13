@@ -30,48 +30,51 @@ type InferRawUnion<T extends readonly any[]> = T extends readonly [
     ? InferRawSchema<First> | InferRawUnion<Rest>
     : never;
 
-type InferRawSchema<T> = T extends { readonly enum: readonly (infer E)[] }
-    ? E
-    : T extends { readonly anyOf: readonly (infer _)[] }
-      ? InferRawUnion<T["anyOf"] & readonly any[]>
-      : T extends { readonly oneOf: readonly (infer _)[] }
-        ? InferRawUnion<T["oneOf"] & readonly any[]>
-        : T extends {
-                readonly type: readonly ["object", "null"];
-                readonly properties: infer P;
-            }
-          ? InferRawObjectProps<P, T> | null
+type InferRawSchema<T> = T extends { readonly const: infer C }
+    ? C
+    : T extends { readonly enum: readonly (infer E)[] }
+      ? E
+      : T extends { readonly anyOf: infer A extends readonly any[] }
+        ? InferRawUnion<A>
+        : T extends { readonly oneOf: infer A extends readonly any[] }
+          ? InferRawUnion<A>
           : T extends {
-                  readonly type: readonly ["array", "null"];
-                  readonly items: infer I;
+                  readonly type: readonly ["object", "null"];
+                  readonly properties: infer P;
               }
-            ? InferRawSchema<I>[] | null
+            ? InferRawObjectProps<P, T> | null
             : T extends {
-                    readonly type: readonly [
-                        infer Tp extends keyof JsonTypeMap,
-                        "null",
-                    ];
+                    readonly type: readonly ["array", "null"];
+                    readonly items: infer I;
                 }
-              ? JsonTypeMap[Tp] | null
+              ? InferRawSchema<I>[] | null
               : T extends {
-                      readonly type: "object";
-                      readonly properties: infer P;
+                      readonly type: readonly [
+                          infer Tp extends keyof JsonTypeMap,
+                          "null",
+                      ];
                   }
-                ? InferRawObjectProps<P, T>
-                : T extends { readonly type: "object" }
-                  ? Record<string, unknown>
-                  : T extends {
-                          readonly type: "array";
-                          readonly items: infer I;
-                      }
-                    ? InferRawSchema<I>[]
-                    : T extends { readonly type: "array" }
-                      ? unknown[]
-                      : T extends {
-                              readonly type: infer Tp extends keyof JsonTypeMap;
-                          }
-                        ? JsonTypeMap[Tp]
-                        : unknown;
+                ? JsonTypeMap[Tp] | null
+                : T extends {
+                        readonly type: "object";
+                        readonly properties: infer P;
+                    }
+                  ? InferRawObjectProps<P, T>
+                  : T extends { readonly type: "object" }
+                    ? Record<string, unknown>
+                    : T extends {
+                            readonly type: "array";
+                            readonly items: infer I;
+                        }
+                      ? InferRawSchema<I>[]
+                      : T extends { readonly type: "array" }
+                        ? unknown[]
+                        : T extends {
+                                readonly type: infer Tp extends
+                                    keyof JsonTypeMap;
+                            }
+                          ? JsonTypeMap[Tp]
+                          : unknown;
 
 type InferRawObjectProps<P, T> = Simplify<
     T extends { readonly required: readonly (infer R extends string)[] }
@@ -100,7 +103,12 @@ type MetaOpts = {
     /** @description Declares which JSON Schema draft this schema conforms to (e.g. `"http://json-schema.org/draft-07/schema#"`). Typically only set on the root schema. */
     $schema?: string;
 };
-type BaseOpts = NullableOpt & OptionalOpt & MetaOpts;
+type BaseOpts = NullableOpt &
+    OptionalOpt &
+    MetaOpts & {
+        description?: string;
+        title?: string;
+    };
 
 type ResolveNullable<Base, Opts extends NullableOpt> = Opts extends {
     nullable: true;
@@ -112,6 +120,34 @@ type ResolveOptional<T, Opts> = Opts extends { optional: true }
     ? TOptionalSchema<T>
     : TSchema<T>;
 
+// ─── Const ───────────────────────────────────────────────────────────────────
+
+type ConstOptions = Omit<BaseOpts, "nullable">;
+
+/**
+ * @description Creates a JSON Schema `const` definition, restricting the value to an exact
+ * literal. The TypeScript type is narrowed to the precise literal type of the provided value.
+ * Supports optional to mark the property as non-required in a parent object.
+ *
+ * @example
+ * ```ts
+ * Schema.Const("TR1")                          // "TR1"
+ * Schema.Const(42)                             // 42
+ * Schema.Const(true)                           // true
+ * Schema.Const(null)                           // null
+ * Schema.Const("v1", { description: "API version", optional: true })
+ * ```
+ */
+function Const<const V, const Opts extends ConstOptions = ConstOptions>(
+    value: V,
+    options?: Opts,
+): ResolveOptional<V, Opts> {
+    let { optional, ...rest } = options ?? ({} as any);
+    let schema: any = { ...rest, const: value };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
 // ─── String ──────────────────────────────────────────────────────────────────
 
 type StringOptions = BaseOpts & {
@@ -120,7 +156,6 @@ type StringOptions = BaseOpts & {
     maxLength?: number;
     pattern?: string;
     format?: string;
-    description?: string;
     default?: string;
 };
 
@@ -171,7 +206,6 @@ type NumberOptions = BaseOpts & {
     exclusiveMinimum?: number | boolean;
     exclusiveMaximum?: number | boolean;
     multipleOf?: number;
-    description?: string;
     default?: number;
 };
 
@@ -216,7 +250,6 @@ function Number<const Opts extends NumberOptions>(
 // ─── Boolean ─────────────────────────────────────────────────────────────────
 
 type BooleanOptions = BaseOpts & {
-    description?: string;
     default?: boolean;
 };
 
@@ -252,7 +285,6 @@ type ArrayOptions = BaseOpts & {
     minItems?: number;
     maxItems?: number;
     uniqueItems?: boolean;
-    description?: string;
 };
 
 type ResolveArray<Item, Opts extends NullableOpt> = ResolveNullable<
@@ -294,7 +326,6 @@ type PropertySchemas = Record<string, TSchema<any> | TOptionalSchema<any>>;
 
 type ObjectOptions = BaseOpts & {
     additionalProperties?: boolean;
-    description?: string;
 };
 
 type RequiredKeys<P extends PropertySchemas> = {
@@ -468,7 +499,7 @@ function Composite<
 // ─── AnyOf / OneOf ──────────────────────────────────────────────────────────
 
 type UnionOptions = BaseOpts & {
-    description?: string;
+    discriminator?: { propertyName: string };
 };
 
 type ResolveUnion<T extends readonly TSchema<any>[]> = T extends readonly [
@@ -605,6 +636,7 @@ function From<const T>(schema: T): TSchema<InferRawSchema<T>> {
 // ─── Schema Export ───────────────────────────────────────────────────────────
 
 export {
+    Const,
     String,
     Number,
     Boolean,
