@@ -8,12 +8,78 @@ The only utility library you'll ever need - a comprehensive collection of TypeSc
 
 ## Table of Contents
 
+- [v5 Breaking Changes & Migration Guide](#v5-breaking-changes--migration-guide)
 - [Logger](#logger)
 - [Helpers](#helpers)
 - [JsonSchema](#jsonschema)
 - [Observable](#observable)
 - [Error](#error)
-- [Types](#types)
+
+---
+
+## v5 Breaking Changes & Migration Guide
+
+### Breaking Changes
+
+1. **`typebox` dependency removed** — all schema types (`TSchema`, `Static`, etc.) are now built-in. The `typebox` package is no longer a dependency.
+
+2. **`Types` export removed** — `Types.Resolved<T>`, `Types.Falsy`, and `Types.Truthy` are no longer exported. Use TypeScript's built-in `Awaited<T>` instead of `Resolved<T>`.
+
+3. **`JsonSchema` import path changed** — the top-level export is now a namespace containing `Schema`, not the schema builder directly.
+
+4. **`Logger.Create` renamed to `Logger.Logger`** — the default export was removed in favour of a named export.
+
+5. **`Logger.Formatters` restructured** — `Formatters.Pretty` (was `PrettyFormatter`) and `Formatters.Yml` (was `YmlFormatter`) are now named exports under a `Formatters` namespace.
+
+6. **Schema builder API replaced** — TypeBox-based helpers (`StringEnum`, `Nullable`, `Email`, `DateExtended`) are replaced by a new built-in schema system with `nullable` and `enum` options on each builder. `Composite` replaces manual `allOf` composition.
+
+### Migration Guide
+
+```ts
+// ─── Imports ─────────────────────────────────────────────────────────────────
+
+// v4
+import { JsonSchema, Types, Logger } from "@bahatron/utils";
+JsonSchema.StringEnum(["a", "b"] as const);
+JsonSchema.Nullable(JsonSchema.String());
+type T = Types.Resolved<Promise<string>>;
+const logger = Logger.Create({ id: "app" });
+Logger.Formatters.Pretty(entry);
+
+// v5
+import { JsonSchema, Logger } from "@bahatron/utils";
+const { Schema } = JsonSchema;
+Schema.String({ enum: ["a", "b"] as const }); // "a" | "b"
+Schema.String({ nullable: true }); // string | null
+type T = Awaited<Promise<string>>; // built-in TS utility
+const logger = Logger.Logger({ id: "app" });
+Logger.Formatters.Pretty(entry);
+
+// ─── Schema builders ────────────────────────────────────────────────────────
+
+// v4 (TypeBox)
+import { JsonSchema } from "@bahatron/utils";
+JsonSchema.String();
+JsonSchema.StringEnum(["a", "b"] as const);
+JsonSchema.Nullable(JsonSchema.String());
+JsonSchema.Email();
+
+// v5
+const { Schema } = JsonSchema;
+Schema.String();
+Schema.String({ enum: ["a", "b"] as const });
+Schema.String({ nullable: true });
+Schema.String({ format: "email" });
+
+// ─── Validation ─────────────────────────────────────────────────────────────
+
+// v4
+JsonSchema.validate(data, schema);
+
+// v5
+const { Schema } = JsonSchema;
+Schema.validate(data, schema); // same behaviour, now under Schema namespace
+```
 
 ---
 
@@ -29,13 +95,14 @@ Fast and simple event-driven logger with customizable formatting and log level c
 - Dynamic logger ID via function or string
 - Non-blocking async handlers
 - Minimum log level filtering
+- Symbol and circular reference serialization in context
 
 ### Usage
 
 ```ts
 import { Logger } from "@bahatron/utils";
 
-const logger = Logger({
+const logger = Logger.Logger({
     id: "myLogger",
     pretty: false,
     minLogLevel: "INFO",
@@ -60,8 +127,18 @@ await logger.flush();
 logger.off("ERROR", handler);
 ```
 
+### Formatters
+
+```ts
+import { Logger } from "@bahatron/utils";
+
+Logger.Formatters.Pretty(entry); // Human-readable coloured output
+Logger.Formatters.Yml(context); // YAML-like indented format
+```
+
 ### API
 
+- `Logger.Logger(options?)` - Create a new logger instance
 - `logger.debug(context, message?)` - Log debug information
 - `logger.info(context, message?)` - Log informational messages
 - `logger.warn(context, message?)` - Log warnings
@@ -184,69 +261,200 @@ Helpers.execute(async () => {
 
 ## JsonSchema
 
-Schema builder and validator based on TypeBox with extended utilities.
+Type-safe JSON Schema builder with full TypeScript inference — no external schema library required.
 
 ### Features
 
-- Type-safe schema definitions
-- Built-in validation
-- Custom extensions: StringEnum, Nullable, Email, DateExtended
-- Full TypeBox API support
-- TypeScript type inference from schemas
+- Zero-dependency schema builders (`String`, `Number`, `Boolean`, `Array`, `Object`, `Const`, `Composite`, `AnyOf`, `OneOf`, `Recursive`)
+- Full TypeScript type inference via `Static<T>` branded types
+- Raw `as const` schema inference via `InferRawSchema<T>`
+- `Schema.From()` for inferring schemas from non-`as const` objects and JSON imports
+- `nullable`, `optional`, `enum` options on every builder
+- `$id`, `$schema`, `description`, `title` metadata on every builder
+- `addSchema()` / `$ref` for reusable sub-schemas
+- Runtime validation using [jsonschema](https://www.npmjs.com/package/jsonschema)
 
-### Usage
+### Import
 
 ```ts
 import { JsonSchema } from "@bahatron/utils";
+const { Schema } = JsonSchema;
 
-// Define schema
-const UserSchema = JsonSchema.Object({
-    id: JsonSchema.Number(),
-    email: JsonSchema.Email(),
-    name: JsonSchema.String(),
-    role: JsonSchema.StringEnum(["admin", "user", "guest"] as const),
-    bio: JsonSchema.Nullable(JsonSchema.String()),
-    createdAt: JsonSchema.DateExtended(),
-});
-
-// Validate data
-const user = JsonSchema.validate(
-    {
-        id: 1,
-        email: "user@example.com",
-        name: "John Doe",
-        role: "admin",
-        bio: null,
-        createdAt: new Date(),
-    },
-    UserSchema,
-);
-
-// TypeScript knows the exact type
-user.email; // string
-user.role; // "admin" | "user" | "guest"
-user.bio; // string | null
+// Type helpers
+import type { JsonSchema } from "@bahatron/utils";
+type MyType = JsonSchema.Static<typeof MySchema>;
+type RawInferred = JsonSchema.InferRawSchema<typeof rawSchema>;
 ```
 
-### Extended Methods
+### Schema Builders
 
-- `StringEnum(values)` - Create enum schema from string array
-- `Nullable(type)` - Make any type nullable (uses `{type: [T, "null"]}` format)
-- `Email()` - String with email format validation
-- `DateExtended()` - Accept Date object or ISO date-time string
+#### Primitives
+
+```ts
+Schema.String(); // string
+Schema.String({ nullable: true }); // string | null
+Schema.String({ enum: ["a", "b"] as const }); // "a" | "b"
+Schema.String({ format: "email" }); // string (validated as email)
+
+Schema.Number(); // number
+Schema.Number({ enum: [1, 2, 3] as const }); // 1 | 2 | 3
+
+Schema.Boolean(); // boolean
+Schema.Boolean({ nullable: true }); // boolean | null
+```
+
+#### Const
+
+```ts
+Schema.Const("active"); // "active"
+Schema.Const(42); // 42
+```
+
+#### Array
+
+```ts
+Schema.Array(Schema.String()); // string[]
+Schema.Array(Schema.Number(), { nullable: true }); // number[] | null
+```
+
+#### Object
+
+```ts
+const UserSchema = Schema.Object({
+    id: Schema.Number(),
+    name: Schema.String(),
+    role: Schema.String({ enum: ["admin", "user"] as const }),
+    bio: Schema.String({ nullable: true, optional: true }),
+});
+
+type User = JsonSchema.Static<typeof UserSchema>;
+// { id: number; name: string; role: "admin" | "user"; bio?: string | null }
+```
+
+#### Composite
+
+Merges multiple object schemas into one. Handles nullable source schemas.
+
+```ts
+const BaseSchema = Schema.Object({
+    id: Schema.Number(),
+    createdAt: Schema.String(),
+});
+
+const UserSchema = Schema.Composite(
+    BaseSchema,
+    Schema.Object({
+        name: Schema.String(),
+        email: Schema.String(),
+    }),
+);
+// { id: number; createdAt: string; name: string; email: string }
+```
+
+#### AnyOf / OneOf
+
+```ts
+const StatusSchema = Schema.AnyOf(Schema.String(), Schema.Number());
+// string | number
+
+const EventSchema = Schema.OneOf(
+    Schema.Object({ type: Schema.Const("click"), x: Schema.Number() }),
+    Schema.Object({ type: Schema.Const("key"), code: Schema.String() }),
+    { discriminator: { propertyName: "type" } },
+);
+// { type: "click"; x: number } | { type: "key"; code: string }
+```
+
+#### Recursive
+
+Define self-referencing schemas using `$ref`. The schema is automatically registered for validation.
+
+```ts
+const TreeSchema = Schema.Recursive("TreeNode", (self) =>
+    Schema.Object({
+        value: Schema.String(),
+        children: Schema.Array(self, { nullable: true }),
+    }),
+);
+// { value: string; children: TreeNode[] | null }
+```
+
+#### From
+
+Infer a typed schema from an untyped source (e.g. a JSON import or a non-`as const` object). The type is provided via the `const` generic parameter.
+
+```ts
+const raw = { type: "string" } as const;
+const schema = Schema.From<string>(raw);
+// TSchema<string> backed by { type: "string" }
+```
+
+### Raw Schema Inference
+
+Use `InferRawSchema` to extract TypeScript types directly from `as const` JSON Schema objects — no builder functions needed:
+
+```ts
+const schema = {
+    type: "object",
+    properties: {
+        id: { type: "number" },
+        name: { type: "string" },
+        role: { enum: ["admin", "user"] },
+        active: { const: true },
+    },
+    required: ["id", "name", "role", "active"],
+} as const;
+
+type MyType = JsonSchema.InferRawSchema<typeof schema>;
+// { id: number; name: string; role: "admin" | "user"; active: true }
+```
+
+Supported keywords: `type`, `const`, `enum`, `properties`/`required`, `items`, `anyOf`, `oneOf`, `nullable`.
 
 ### Validation
 
-The `validate` function returns the typed object if valid, or throws `ValidationFailed` error with details.
+The `validate` function returns the typed object if valid, or throws `ValidationFailed` with details.
 
 ```ts
+const UserSchema = Schema.Object({
+    id: Schema.Number(),
+    name: Schema.String(),
+});
+
+// Returns typed object
+const user = Schema.validate({ id: 1, name: "John" }, UserSchema);
+user.id; // number
+user.name; // string
+
+// Throws on invalid data
 try {
-    const data = JsonSchema.validate(input, schema);
+    Schema.validate({ id: "bad" }, UserSchema);
 } catch (err) {
-    // err is ValidationFailed exception with error details
-    console.error(err.context); // Array of validation errors
+    // err is ValidationFailed with error details
+    console.error(err.context);
 }
 ```
+
+### API Reference
+
+**Builders** — all accept an options object with `nullable?`, `optional?`, `$id?`, `$schema?`, `description?`, `title?`:
+
+- `Schema.Const(value, opts?)` — literal value schema
+- `Schema.String(opts?)` — string schema (supports `enum`, `format`)
+- `Schema.Number(opts?)` — number schema (supports `enum`)
+- `Schema.Boolean(opts?)` — boolean schema
+- `Schema.Array(items, opts?)` — array schema
+- `Schema.Object(properties, opts?)` — object schema (supports `additionalProperties`)
+- `Schema.Composite(...schemas)` — merge multiple object schemas
+- `Schema.AnyOf(...schemas, opts?)` — union (any match)
+- `Schema.OneOf(...schemas, opts?)` — union (exactly one match, supports `discriminator`)
+- `Schema.Recursive(id, builder)` — self-referencing schema via `$ref`
+- `Schema.From<T>(raw)` — wrap a raw schema with a type parameter
+
+**Validation:**
+
+- `Schema.validate(data, schema)` — validate and return typed data, or throw `ValidationFailed`
+- `Schema.addSchema(schema, uri)` — register a schema for `$ref` resolution
 
 ---
 
@@ -369,33 +577,6 @@ try {
     console.error(err.message); // "User not found"
     console.error(err.context); // { userId: 123 }
 }
-```
-
----
-
-## Types
-
-TypeScript utility types for advanced type manipulation.
-
-### `Resolved<T>`
-
-Unwraps Promise types to get the resolved value type.
-
-```ts
-import { Types } from "@bahatron/utils";
-
-async function fetchUser() {
-    return { id: 1, name: "John" };
-}
-
-// Get the return type without await
-type User = Types.Resolved<ReturnType<typeof fetchUser>>;
-// Result: { id: number; name: string }
-
-// Works with nested promises
-type DoublePromise = Promise<Promise<string>>;
-type Unwrapped = Types.Resolved<DoublePromise>;
-// Result: string
 ```
 
 ---
