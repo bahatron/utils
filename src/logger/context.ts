@@ -35,12 +35,20 @@ export function LogContext(context: any) {
         } else if (typeof context === "symbol") {
             return context.toString();
         } else if (typeof context === "object" && Boolean(context)) {
-            if (weakSet.has(context)) return `[Reference]`;
+            if (weakSet.has(context)) {
+                let name = context.constructor?.name;
+                return name && name !== "Object"
+                    ? `[Reference: ${name}]`
+                    : `[Reference]`;
+            }
             weakSet.add(context);
-            return Object.entries(context).reduce((aggregate, [key, value]) => {
-                aggregate[key] = recursiveReduce(value);
-                return aggregate;
-            }, {} as Record<string | number, any>);
+            return Object.entries(context).reduce(
+                (aggregate, [key, value]) => {
+                    aggregate[key] = recursiveReduce(value);
+                    return aggregate;
+                },
+                {} as Record<string | number, any>,
+            );
         } else {
             return context;
         }
