@@ -2,6 +2,12 @@
 
 import { JsonSchema } from "../src";
 import { type Static, Schema } from "../src/json-schema";
+import { Logger } from "../src";
+import { log } from "node:console";
+
+let logger = Logger.Create({
+    formatter: Logger.Formatters.Pretty,
+});
 
 let stringType = Schema.String();
 type IstringType = Static<typeof stringType>; // string
@@ -28,7 +34,7 @@ type IstringWithOptions = Static<typeof stringWithOptions>;
 
 let emailString = Schema.String({ format: "email" });
 
-console.log({ stringWithOptions, emailString });
+logger.info({ stringWithOptions, emailString });
 // ─── Number ──────────────────────────────────────────────────────────────────
 
 let numberType = Schema.Number();
@@ -137,23 +143,90 @@ let address = Schema.Object({
     zip: Schema.String({ pattern: "^\\d{5}$" }),
 });
 
-let person = Schema.Object({
+let personSchema = Schema.Object({
     name: Schema.String(),
     age: Schema.Number({ minimum: 0 }),
     email: Schema.String({ format: "email", nullable: true }),
     address: address,
     tags: Schema.Array(Schema.String(), { uniqueItems: true }),
 });
-type Iperson = Static<typeof person>;
+type Iperson = Static<typeof personSchema>;
 
 let company = Schema.Object({
     name: Schema.String(),
-    employees: Schema.Array(person),
+    employees: Schema.Array(personSchema),
     hq: address,
     industry: Schema.String({ enum: ["tech", "finance", "health"] as const }),
     notes: Schema.String({ nullable: true, optional: true }),
+    address: Schema.Object({}),
 });
 type Icompany = Static<typeof company>;
+
+let nullableArray = Schema.Array(Schema.String({ nullable: true }), {
+    nullable: true,
+});
+type InullableArray = Static<typeof nullableArray>; // (string | null)[] | null
+
+// ─── Array: optional & nullable ─────────────────────────────────────────────
+
+let optionalArray = Schema.Array(Schema.String(), { optional: true });
+type IoptionalArray = Static<typeof optionalArray>; // string[]
+
+let optionalNullableArray = Schema.Array(Schema.Number(), {
+    optional: true,
+    nullable: true,
+});
+type IoptionalNullableArray = Static<typeof optionalNullableArray>; // number[] | null
+
+// ─── Object: optional & nullable (nested) ───────────────────────────────────
+
+let optionalObject = Schema.Object(
+    { key: Schema.String() },
+    { optional: true },
+);
+type IoptionalObject = Static<typeof optionalObject>;
+// { key: string }
+
+let optionalNullableObject = Schema.Object(
+    { key: Schema.String(), value: Schema.Number({ optional: true }) },
+    { optional: true, nullable: true },
+);
+type IoptionalNullableObject = Static<typeof optionalNullableObject>;
+// { key: string; value?: number } | null
+
+// ─── Nested optional Array & Object ─────────────────────────────────────────
+
+let nestedOptionals = Schema.Object(
+    {
+        name: Schema.String(),
+        aliases: Schema.Array(Schema.String(), { optional: true }),
+        metadata: Schema.Object(
+            {
+                createdAt: Schema.String(),
+                updatedAt: Schema.String({ optional: true }),
+            },
+            { optional: true },
+        ),
+        scores: Schema.Array(Schema.Number(), {
+            optional: true,
+            nullable: true,
+        }),
+        backup: Schema.Object(
+            { url: Schema.String() },
+            { optional: true, nullable: true },
+        ),
+    },
+    { description: "A complex object with nested optionals", nullable: true },
+);
+
+type InestedOptionals = Static<typeof nestedOptionals>;
+// {
+//   name: string;
+//   aliases?: string[];
+//   metadata?: { createdAt: string; updatedAt?: string };
+//   scores?: number[] | null;
+//   backup?: { url: string } | null;
+// }
 
 // ─── Validate ────────────────────────────────────────────────────────────────
 
@@ -165,48 +238,99 @@ let validPerson = Schema.validate(
         address: { street: "123 Portal Rd", city: "C-137", zip: "12345" },
         tags: ["scientist", "genius"],
     },
-    person,
+    personSchema,
 );
 
-console.log("=== String schemas ===", {
-    stringType,
-    nullableStringType,
-    enumStringType,
-    nullableEnumStringType,
-    stringWithOptions,
-    emailString,
-});
+logger.info(
+    {
+        stringType,
+        nullableStringType,
+        enumStringType,
+        nullableEnumStringType,
+        stringWithOptions,
+        emailString,
+    },
+    "=== String schemas ===",
+);
 
-console.log("=== Number schemas ===", {
-    numberType,
-    nullableNumberType,
-    enumNumberType,
-    nullableEnumNumberType,
-    numberWithOptions,
-});
+logger.info(
+    {
+        numberType,
+        nullableNumberType,
+        enumNumberType,
+        nullableEnumNumberType,
+        numberWithOptions,
+    },
+    "=== Number schemas ===",
+);
 
-console.log("=== Boolean schemas ===", {
-    booleanType,
-    nullableBooleanType,
-    booleanWithDefault,
-});
+logger.info(
+    {
+        booleanType,
+        nullableBooleanType,
+        booleanWithDefault,
+    },
+    "=== Boolean schemas ===",
+);
 
-console.log("=== Array schemas ===", {
-    stringArrayType,
-    nullableArrayType,
-    arrayOfNullableStrings,
-    arrayWithOptions,
-    enumArray,
-    nestedArray,
-});
+logger.info(
+    {
+        stringArrayType,
+        nullableArrayType,
+        arrayOfNullableStrings,
+        arrayWithOptions,
+        enumArray,
+        nestedArray,
+        optionalArray,
+        optionalNullableArray,
+    },
+    "=== Array schemas ===",
+);
 
-console.log("=== Object schemas ===", {
-    simpleObject,
-    objectWithOptional,
-    nullableObject,
-    nullableObjectWithOptional,
-    objectWithDescription,
-});
+logger.info(
+    {
+        simpleObject,
+        objectWithOptional,
+        nullableObject,
+        nullableObjectWithOptional,
+        objectWithDescription,
+        optionalObject,
+        optionalNullableObject,
+    },
+    "=== Object schemas ===",
+);
 
-console.log("=== Nested schemas ===", { person, company });
-console.log("=== Validated person ===", validPerson);
+logger.info(
+    { personSchema, company, nestedOptionals },
+    "=== Nested schemas ===",
+);
+
+logger.info({ validPerson }, "=== Validated person ===");
+
+const baseSchema = {
+    type: "object",
+    properties: {
+        name: { type: "string" },
+        age: { type: ["number", "null"] },
+    },
+    required: ["name", "age"],
+    additionalProperties: false,
+} as const;
+
+type IBaseSchema = Static<typeof baseSchema>;
+log({ baseSchema }, "=== Base schema ===");
+
+// ─── Schema.From (no `as const` needed) ─────────────────────────────────────
+
+const fromSchema = Schema.From({
+    type: "object",
+    properties: {
+        name: { type: "string" },
+        age: { type: "number" },
+        active: { type: "boolean" },
+    },
+    required: ["name", "age"],
+});
+type IFromSchema = Static<typeof fromSchema>;
+log({ fromSchema }, "=== From schema ===");
+// { name: string; age: number; active?: boolean }

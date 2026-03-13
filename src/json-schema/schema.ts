@@ -3,23 +3,81 @@ import { validate } from "./validator";
 
 // ─── Branded Schema Type ─────────────────────────────────────────────────────
 
-declare const phantom: unique symbol;
+declare const phantomBrand: unique symbol;
 declare const optionalBrand: unique symbol;
 
 export type TSchema<T = unknown> = JsonSchemaDefinition & {
-    readonly [phantom]: T;
+    readonly [phantomBrand]: T;
 };
 
 export type TOptionalSchema<T = unknown> = TSchema<T> & {
     readonly [optionalBrand]: true;
 };
 
+// ─── Raw JSON Schema Inference ───────────────────────────────────────────────
+
+type JsonTypeMap = {
+    string: string;
+    number: number;
+    integer: number;
+    boolean: boolean;
+};
+
+type InferRawSchema<T> = T extends { readonly enum: readonly (infer E)[] }
+    ? E
+    : T extends {
+            readonly type: readonly ["object", "null"];
+            readonly properties: infer P;
+        }
+      ? InferRawObjectProps<P, T> | null
+      : T extends {
+              readonly type: readonly ["array", "null"];
+              readonly items: infer I;
+          }
+        ? InferRawSchema<I>[] | null
+        : T extends {
+                readonly type: readonly [
+                    infer Tp extends keyof JsonTypeMap,
+                    "null",
+                ];
+            }
+          ? JsonTypeMap[Tp] | null
+          : T extends {
+                  readonly type: "object";
+                  readonly properties: infer P;
+              }
+            ? InferRawObjectProps<P, T>
+            : T extends { readonly type: "object" }
+              ? Record<string, unknown>
+              : T extends {
+                      readonly type: "array";
+                      readonly items: infer I;
+                  }
+                ? InferRawSchema<I>[]
+                : T extends { readonly type: "array" }
+                  ? unknown[]
+                  : T extends {
+                          readonly type: infer Tp extends keyof JsonTypeMap;
+                      }
+                    ? JsonTypeMap[Tp]
+                    : unknown;
+
+type InferRawObjectProps<P, T> = Simplify<
+    T extends { readonly required: readonly (infer R extends string)[] }
+        ? { [K in Extract<keyof P, R>]: InferRawSchema<P[K]> } & {
+              [K in Exclude<keyof P & string, R>]?: InferRawSchema<P[K]>;
+          }
+        : { [K in keyof P]?: InferRawSchema<P[K]> }
+>;
+
+// ─── Static Type Extractor ───────────────────────────────────────────────────
+
 export type Static<T> =
     T extends TOptionalSchema<infer U>
         ? U
         : T extends TSchema<infer U>
           ? U
-          : never;
+          : InferRawSchema<T>;
 
 // ─── Shared Options ──────────────────────────────────────────────────────────
 
@@ -161,7 +219,7 @@ function Array<T, const Opts extends ArrayOptions = ArrayOptions>(
 
 type PropertySchemas = Record<string, TSchema<any> | TOptionalSchema<any>>;
 
-type ObjectOptions = NullableOpt & {
+type ObjectOptions = BaseOpts & {
     additionalProperties?: boolean;
     description?: string;
 };
@@ -190,20 +248,32 @@ type ResolveObject<
 function Object<
     P extends PropertySchemas,
     const Opts extends ObjectOptions = ObjectOptions,
->(properties: P, options?: Opts): TSchema<ResolveObject<P, Opts>> {
-    let { nullable, additionalProperties, ...rest } = options ?? ({} as any);
+>(
+    properties: P,
+    options?: Opts,
+): ResolveOptional<ResolveObject<P, Opts>, Opts> {
+    let { nullable, optional, additionalProperties, ...rest } =
+        options ?? ({} as any);
     let allKeys = globalThis.Object.keys(properties);
     let required = allKeys.filter((k) => !(properties[k] as any)?._optional);
 
-    return {
+    let schema: any = {
         ...rest,
         type: nullable ? ["object", "null"] : "object",
         properties,
         ...(required.length ? { required } : {}),
         ...(additionalProperties !== undefined ? { additionalProperties } : {}),
-    } as any;
+    };
+    if (optional) schema._optional = true;
+    return schema;
+}
+
+// ─── From (raw JSON Schema → branded TSchema) ──────────────────────────────
+
+function From<const T>(schema: T): TSchema<InferRawSchema<T>> {
+    return schema as any;
 }
 
 // ─── Schema Export ───────────────────────────────────────────────────────────
 
-export { String, Number, Boolean, Array, Object, validate };
+export { String, Number, Boolean, Array, Object, From, validate };
