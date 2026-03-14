@@ -11,16 +11,15 @@ let logger = Logger.Logger({
 let stringType = Schema.String();
 type IstringType = Static<typeof stringType>; // string
 
-let nullableStringType = Schema.String({ nullable: true });
+let nullableStringType = Schema.Nullable(Schema.String());
 type InullableStringType = Static<typeof nullableStringType>; // string | null
 
 let enumStringType = Schema.String({ enum: ["a", "b", "c"] as const }); // "a" | "b" | "c"
 type IenumStringType = Static<typeof enumStringType>;
 
-let nullableEnumStringType = Schema.String({
-    enum: ["a", "b", "c"] as const,
-    nullable: true,
-}); // "a" | "b" | "c" | null
+let nullableEnumStringType = Schema.Nullable(
+    Schema.String({ enum: ["a", "b", "c"] as const }),
+); // "a" | "b" | "c" | null
 type InullableEnumStringType = Static<typeof nullableEnumStringType>;
 
 let stringWithOptions = Schema.String({
@@ -39,16 +38,15 @@ logger.info({ stringWithOptions, emailString });
 let numberType = Schema.Number();
 type InumberType = Static<typeof numberType>; // number
 
-let nullableNumberType = Schema.Number({ nullable: true });
+let nullableNumberType = Schema.Nullable(Schema.Number());
 type InullableNumberType = Static<typeof nullableNumberType>; // number | null
 
 let enumNumberType = Schema.Number({ enum: [1, 2, 3] as const });
 type IenumNumberType = Static<typeof enumNumberType>; // 1 | 2 | 3
 
-let nullableEnumNumberType = Schema.Number({
-    enum: [10, 20, 30] as const,
-    nullable: true,
-});
+let nullableEnumNumberType = Schema.Nullable(
+    Schema.Number({ enum: [10, 20, 30] as const }),
+);
 type InullableEnumNumberType = Static<typeof nullableEnumNumberType>; // 10 | 20 | 30 | null
 
 let numberWithOptions = Schema.Number({
@@ -63,7 +61,7 @@ let numberWithOptions = Schema.Number({
 let booleanType = Schema.Boolean();
 type IbooleanType = Static<typeof booleanType>; // boolean
 
-let nullableBooleanType = Schema.Boolean({ nullable: true });
+let nullableBooleanType = Schema.Nullable(Schema.Boolean());
 type InullableBooleanType = Static<typeof nullableBooleanType>; // boolean | null
 
 let booleanWithDefault = Schema.Boolean({
@@ -76,10 +74,10 @@ let booleanWithDefault = Schema.Boolean({
 let stringArrayType = Schema.Array(Schema.String());
 type IstringArrayType = Static<typeof stringArrayType>; // string[]
 
-let nullableArrayType = Schema.Array(Schema.Number(), { nullable: true });
+let nullableArrayType = Schema.Nullable(Schema.Array(Schema.Number()));
 type InullableArrayType = Static<typeof nullableArrayType>; // number[] | null
 
-let arrayOfNullableStrings = Schema.Array(Schema.String({ nullable: true }));
+let arrayOfNullableStrings = Schema.Array(Schema.Nullable(Schema.String()));
 type IarrayOfNullableStrings = Static<typeof arrayOfNullableStrings>; // (string | null)[]
 
 let arrayWithOptions = Schema.Array(Schema.String(), {
@@ -106,23 +104,24 @@ type IsimpleObject = Static<typeof simpleObject>;
 
 let objectWithOptional = Schema.Object({
     id: Schema.Number(),
-    name: Schema.String({ nullable: true }),
-    bio: Schema.String({ optional: true }),
-    nickname: Schema.String({ optional: true }),
+    name: Schema.Nullable(Schema.String()),
+    bio: Schema.Optional(Schema.String()),
+    nickname: Schema.Optional(Schema.String()),
 });
 type IobjectWithOptional = Static<typeof objectWithOptional>;
 // { id: number; name: string; bio?: string; nickname?: string }
 
-let nullableObject = Schema.Object(
-    { id: Schema.Number(), label: Schema.String() },
-    { nullable: true },
+let nullableObject = Schema.Nullable(
+    Schema.Object({ id: Schema.Number(), label: Schema.String() }),
 );
 type InullableObject = Static<typeof nullableObject>;
 // { id: number; label: string } | null
 
-let nullableObjectWithOptional = Schema.Object(
-    { id: Schema.Number(), tag: Schema.String({ optional: true }) },
-    { nullable: true },
+let nullableObjectWithOptional = Schema.Nullable(
+    Schema.Object({
+        id: Schema.Number(),
+        tag: Schema.Optional(Schema.String()),
+    }),
 );
 type InullableObjectWithOptional = Static<typeof nullableObjectWithOptional>;
 // { id: number; tag?: string } | null
@@ -145,7 +144,7 @@ let address = Schema.Object({
 let personSchema = Schema.Object({
     name: Schema.String(),
     age: Schema.Number({ minimum: 0 }),
-    email: Schema.String({ format: "email", nullable: true }),
+    email: Schema.Nullable(Schema.String({ format: "email" })),
     address: address,
     tags: Schema.Array(Schema.String(), { uniqueItems: true }),
 });
@@ -156,66 +155,65 @@ let company = Schema.Object({
     employees: Schema.Array(personSchema),
     hq: address,
     industry: Schema.String({ enum: ["tech", "finance", "health"] as const }),
-    notes: Schema.String({ nullable: true, optional: true }),
+    notes: Schema.Optional(Schema.Nullable(Schema.String())),
     address: Schema.Object({}),
 });
 type Icompany = Static<typeof company>;
 
-let nullableArray = Schema.Array(Schema.String({ nullable: true }), {
-    nullable: true,
-});
+let nullableArray = Schema.Nullable(
+    Schema.Array(Schema.Nullable(Schema.String())),
+);
 type InullableArray = Static<typeof nullableArray>; // (string | null)[] | null
 
 // ─── Array: optional & nullable ─────────────────────────────────────────────
 
-let optionalArray = Schema.Array(Schema.String(), { optional: true });
+let optionalArray = Schema.Optional(Schema.Array(Schema.String()));
 type IoptionalArray = Static<typeof optionalArray>; // string[]
 
-let optionalNullableArray = Schema.Array(Schema.Number(), {
-    optional: true,
-    nullable: true,
-});
+let optionalNullableArray = Schema.Optional(
+    Schema.Nullable(Schema.Array(Schema.Number())),
+);
 type IoptionalNullableArray = Static<typeof optionalNullableArray>; // number[] | null
 
 // ─── Object: optional & nullable (nested) ───────────────────────────────────
 
-let optionalObject = Schema.Object(
-    { key: Schema.String() },
-    { optional: true },
-);
+let optionalObject = Schema.Optional(Schema.Object({ key: Schema.String() }));
 type IoptionalObject = Static<typeof optionalObject>;
 // { key: string }
 
-let optionalNullableObject = Schema.Object(
-    { key: Schema.String(), value: Schema.Number({ optional: true }) },
-    { optional: true, nullable: true },
+let optionalNullableObject = Schema.Optional(
+    Schema.Nullable(
+        Schema.Object({
+            key: Schema.String(),
+            value: Schema.Optional(Schema.Number()),
+        }),
+    ),
 );
 type IoptionalNullableObject = Static<typeof optionalNullableObject>;
 // { key: string; value?: number } | null
 
 // ─── Nested optional Array & Object ─────────────────────────────────────────
 
-let nestedOptionals = Schema.Object(
-    {
-        name: Schema.String(),
-        aliases: Schema.Array(Schema.String(), { optional: true }),
-        metadata: Schema.Object(
-            {
-                createdAt: Schema.String(),
-                updatedAt: Schema.String({ optional: true }),
-            },
-            { optional: true },
-        ),
-        scores: Schema.Array(Schema.Number(), {
-            optional: true,
-            nullable: true,
-        }),
-        backup: Schema.Object(
-            { url: Schema.String() },
-            { optional: true, nullable: true },
-        ),
-    },
-    { description: "A complex object with nested optionals", nullable: true },
+let nestedOptionals = Schema.Nullable(
+    Schema.Object(
+        {
+            name: Schema.String(),
+            aliases: Schema.Optional(Schema.Array(Schema.String())),
+            metadata: Schema.Optional(
+                Schema.Object({
+                    createdAt: Schema.String(),
+                    updatedAt: Schema.Optional(Schema.String()),
+                }),
+            ),
+            scores: Schema.Optional(
+                Schema.Nullable(Schema.Array(Schema.Number())),
+            ),
+            backup: Schema.Optional(
+                Schema.Nullable(Schema.Object({ url: Schema.String() })),
+            ),
+        },
+        { description: "A complex object with nested optionals" },
+    ),
 );
 
 type InestedOptionals = Static<typeof nestedOptionals>;
@@ -342,7 +340,7 @@ let userSchema = Schema.Object({
 });
 
 let profileSchema = Schema.Object({
-    bio: Schema.String({ optional: true }),
+    bio: Schema.Optional(Schema.String()),
     avatar: Schema.String(),
 });
 
@@ -352,12 +350,11 @@ type IFullUser = Static<typeof fullUser>;
 // { name: string; email: string; bio?: string; avatar: string }
 
 // nullable schema — its keys become optional in the composite
-let addressSchema = Schema.Object(
-    {
+let addressSchema = Schema.Nullable(
+    Schema.Object({
         street: Schema.String(),
         city: Schema.String(),
-    },
-    { nullable: true },
+    }),
 );
 
 let userWithAddress = Schema.Composite([userSchema, addressSchema]);
@@ -365,9 +362,9 @@ type IUserWithAddress = Static<typeof userWithAddress>;
 // { name: string; email: string; street: string | null; city: string | null }
 
 // composite itself can be nullable/optional
-let nullableComposite = Schema.Composite([userSchema, profileSchema], {
-    nullable: true,
-});
+let nullableComposite = Schema.Nullable(
+    Schema.Composite([userSchema, profileSchema]),
+);
 type INullableComposite = Static<typeof nullableComposite>;
 // { name: string; email: string; bio?: string; avatar: string } | null
 
@@ -383,9 +380,9 @@ let stringOrNumber = Schema.AnyOf([Schema.String(), Schema.Number()]);
 type IStringOrNumber = Static<typeof stringOrNumber>; // string | number
 
 // nullable anyOf
-let stringOrNumberOrNull = Schema.AnyOf([Schema.String(), Schema.Number()], {
-    nullable: true,
-});
+let stringOrNumberOrNull = Schema.Nullable(
+    Schema.AnyOf([Schema.String(), Schema.Number()]),
+);
 type IStringOrNumberOrNull = Static<typeof stringOrNumberOrNull>; // string | number | null
 
 // anyOf with objects
@@ -402,7 +399,7 @@ let statusSchema = Schema.OneOf([
 type IStatus = Static<typeof statusSchema>; // "active" | "inactive" | 0 | 1
 
 // optional oneOf
-let optionalPet = Schema.OneOf([catSchema, dogSchema], { optional: true });
+let optionalPet = Schema.Optional(Schema.OneOf([catSchema, dogSchema]));
 type IOptionalPet = Static<typeof optionalPet>; // { meow: boolean } | { bark: boolean }
 
 // raw JSON schema with anyOf / oneOf (via as const or Schema.From)
@@ -455,7 +452,7 @@ let linkedListSchema = Schema.Recursive<LinkedListNode>(
     (self) =>
         Schema.Object({
             data: Schema.Number(),
-            next: Schema.AnyOf([self], { nullable: true }),
+            next: Schema.Nullable(Schema.AnyOf([self])),
         }),
 );
 type ILinkedList = Static<typeof linkedListSchema>; // LinkedListNode
@@ -484,3 +481,139 @@ let referenceable = Schema.Object(
 );
 
 logger.info({ rootSchema, referenceable }, "=== $schema / $id ===");
+
+// ─── Any ─────────────────────────────────────────────────────────────────────
+
+let anyType = Schema.Any();
+type IAnyType = Static<typeof anyType>; // any
+
+let optionalAny = Schema.Optional(Schema.Any());
+type IOptionalAny = Static<typeof optionalAny>; // any
+
+let describedAny = Schema.Any({ description: "arbitrary metadata payload" });
+type IDescribedAny = Static<typeof describedAny>; // any
+
+// any inside an object — useful for "pass-through" fields
+let eventSchema = Schema.Object({
+    type: Schema.String(),
+    payload: Schema.Any(),
+    meta: Schema.Optional(Schema.Any()),
+});
+type IEvent = Static<typeof eventSchema>;
+// { type: string; payload: any; meta?: any }
+
+logger.info(
+    { anyType, optionalAny, describedAny, eventSchema },
+    "=== Any schemas ===",
+);
+
+// ─── Record ──────────────────────────────────────────────────────────────────
+
+// basic string-keyed record
+let stringToNumber = Schema.Record(Schema.String(), Schema.Number());
+type IStringToNumber = Static<typeof stringToNumber>; // Record<string, number>
+
+// number-keyed record
+let numberToString = Schema.Record(Schema.Number(), Schema.String());
+type INumberToString = Static<typeof numberToString>; // Record<number, string>
+
+// nullable record
+let nullableRecord = Schema.Nullable(
+    Schema.Record(Schema.String(), Schema.String()),
+);
+type INullableRecord = Static<typeof nullableRecord>; // Record<string, string> | null
+
+// optional record
+let optionalRecord = Schema.Optional(
+    Schema.Record(Schema.String(), Schema.Boolean()),
+);
+type IOptionalRecord = Static<typeof optionalRecord>; // Record<string, boolean>
+
+// record with object values
+let userMap = Schema.Record(
+    Schema.String(),
+    Schema.Object({
+        name: Schema.String(),
+        age: Schema.Optional(Schema.Number()),
+    }),
+);
+type IUserMap = Static<typeof userMap>;
+// Record<string, { name: string; age?: number }>
+
+// record with any values
+let metadata = Schema.Record(Schema.String(), Schema.Any());
+type IMetadata = Static<typeof metadata>; // Record<string, any>
+
+// record inside an object
+let configSchema = Schema.Object({
+    version: Schema.Number(),
+    settings: Schema.Record(Schema.String(), Schema.String()),
+    headers: Schema.Optional(
+        Schema.Record(Schema.String(), Schema.String()),
+    ),
+});
+type IConfig = Static<typeof configSchema>;
+// { version: number; settings: Record<string, string>; headers?: Record<string, string> }
+
+logger.info(
+    {
+        stringToNumber,
+        numberToString,
+        nullableRecord,
+        optionalRecord,
+        userMap,
+        metadata,
+        configSchema,
+    },
+    "=== Record schemas ===",
+);
+
+// ─── Pick / Omit ─────────────────────────────────────────────────────────────
+
+let fullUser2 = Schema.Object({
+    name: Schema.String(),
+    age: Schema.Number(),
+    email: Schema.String(),
+    bio: Schema.Optional(Schema.String()),
+});
+
+// Pick — keep only selected keys
+let nameAndEmail = Schema.Pick(fullUser2, ["name", "email"]);
+type INameAndEmail = Static<typeof nameAndEmail>; // { name: string; email: string }
+
+let justName = Schema.Pick(fullUser2, ["name"]);
+type IJustName = Static<typeof justName>; // { name: string }
+
+// Pick preserves optional
+let withOptional = Schema.Pick(fullUser2, ["name", "bio"]);
+type IWithOptional = Static<typeof withOptional>; // { name: string; bio?: string }
+
+// Omit — remove selected keys
+let withoutEmail = Schema.Omit(fullUser2, ["email"]);
+type IWithoutEmail = Static<typeof withoutEmail>;
+// { name: string; age: number; bio?: string }
+
+let withoutAgeAndBio = Schema.Omit(fullUser2, ["age", "bio"]);
+type IWithoutAgeAndBio = Static<typeof withoutAgeAndBio>;
+// { name: string; email: string }
+
+// Pick/Omit result can be used in Composite
+let extra = Schema.Object({ role: Schema.String() });
+let composedPick = Schema.Composite([Schema.Pick(fullUser2, ["name"]), extra]);
+type IComposedPick = Static<typeof composedPick>; // { name: string; role: string }
+
+// Uncomment to see type error — "foo" does not exist:
+// Schema.Pick(fullUser2, ["foo"]);
+// Schema.Omit(fullUser2, ["foo"]);
+
+logger.info(
+    {
+        nameAndEmail,
+        justName,
+        withOptional,
+        withoutEmail,
+        withoutAgeAndBio,
+        composedPick,
+    },
+    "=== Pick / Omit schemas ===",
+);
