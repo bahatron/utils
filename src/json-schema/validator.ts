@@ -1,6 +1,6 @@
 import jsonschema, { Schema } from "jsonschema";
 import { ValidationFailed } from "../error";
-import type { TSchema, Static } from "./schema";
+import type { TSchema, Static } from "./common";
 
 const validator = new jsonschema.Validator();
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import * as Schema from "../src/json-schema/schema";
-import type { Static } from "../src/json-schema/schema";
+import { Schema } from "../src/json-schema";
+import type { Static } from "../src/json-schema";
 
 describe("JsonSchema", () => {
     it("should be able to validate a schema", () => {
@@ -337,7 +337,6 @@ describe("JsonSchema", () => {
 
         it("throws on non-object schema", () => {
             let schema = Schema.String() as any;
-            // @ts-expect-error — intentionally passing non-object schema
             expect(() => Schema.Pick(schema, ["foo"])).toThrow(
                 "Schema.Pick: schema must be of type 'object'",
             );
@@ -404,7 +403,6 @@ describe("JsonSchema", () => {
 
         it("throws on non-object schema", () => {
             let schema = Schema.Number() as any;
-            // @ts-expect-error — intentionally passing non-object schema
             expect(() => Schema.Omit(schema, ["foo"])).toThrow(
                 "Schema.Omit: schema must be of type 'object'",
             );

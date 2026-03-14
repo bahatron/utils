@@ -25,13 +25,13 @@ The only utility library you'll ever need - a comprehensive collection of TypeSc
 
 2. **`Types` export removed** — `Types.Resolved<T>`, `Types.Falsy`, and `Types.Truthy` are no longer exported. Use TypeScript's built-in `Awaited<T>` instead of `Resolved<T>`.
 
-3. **`JsonSchema` import path changed** — the top-level export is now a namespace containing `Schema`, not the schema builder directly.
+3. **`JsonSchema` restructured** — the top-level export is still `JsonSchema`, but it now contains a `Schema` object with all builders and `validate`. Type helpers (`Static`, `InferRawSchema`) are exported at the `JsonSchema` level.
 
 4. **`Logger.Create` renamed to `Logger.Logger`** — the default export was removed in favour of a named export.
 
 5. **`Logger.Formatters` restructured** — `Formatters.Pretty` (was `PrettyFormatter`) and `Formatters.Yml` (was `YmlFormatter`) are now named exports under a `Formatters` namespace.
 
-6. **Schema builder API replaced** — TypeBox-based helpers (`StringEnum`, `Nullable`, `Email`, `DateExtended`) are replaced by a new built-in schema system with `nullable` and `enum` options on each builder. `Composite` replaces manual `allOf` composition.
+6. **Schema builder API replaced** — TypeBox-based helpers (`StringEnum`, `Nullable`, `Email`, `DateExtended`) are replaced by a new built-in schema system with `Schema.Nullable()`, `Schema.Optional()` wrappers and `enum` options on primitive builders. `Composite` replaces manual `allOf` composition.
 
 ### Migration Guide
 
@@ -50,7 +50,7 @@ Logger.Formatters.Pretty(entry);
 import { JsonSchema, Logger } from "@bahatron/utils";
 const { Schema } = JsonSchema;
 Schema.String({ enum: ["a", "b"] as const }); // "a" | "b"
-Schema.String({ nullable: true }); // string | null
+Schema.Nullable(Schema.String()); // string | null
 type T = Awaited<Promise<string>>; // built-in TS utility
 const logger = Logger.Logger({ id: "app" });
 Logger.Formatters.Pretty(entry);
@@ -68,7 +68,7 @@ JsonSchema.Email();
 const { Schema } = JsonSchema;
 Schema.String();
 Schema.String({ enum: ["a", "b"] as const });
-Schema.String({ nullable: true });
+Schema.Nullable(Schema.String());
 Schema.String({ format: "email" });
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -77,8 +77,7 @@ Schema.String({ format: "email" });
 JsonSchema.validate(data, schema);
 
 // v5
-const { Schema } = JsonSchema;
-Schema.validate(data, schema); // same behaviour, now under Schema namespace
+Schema.validate(data, schema);
 ```
 
 ---
@@ -265,13 +264,12 @@ Type-safe JSON Schema builder with full TypeScript inference — no external sch
 
 ### Features
 
-- Zero-dependency schema builders (`String`, `Number`, `Boolean`, `Array`, `Object`, `Const`, `Composite`, `AnyOf`, `OneOf`, `Recursive`)
+- Zero-dependency schema builders (`String`, `Number`, `Boolean`, `Array`, `Object`, `Const`, `Any`, `Record`, `Composite`, `AnyOf`, `OneOf`, `Recursive`)
+- Wrappers: `Nullable`, `Optional`, `Required`, `Pick`, `Omit`
 - Full TypeScript type inference via `Static<T>` branded types
 - Raw `as const` schema inference via `InferRawSchema<T>`
 - `Schema.From()` for inferring schemas from non-`as const` objects and JSON imports
-- `nullable`, `optional`, `enum` options on every builder
-- `$id`, `$schema`, `description`, `title` metadata on every builder
-- `addSchema()` / `$ref` for reusable sub-schemas
+- `enum` option on primitive builders, `$id`, `$schema`, `description`, `title` metadata on every builder
 - Runtime validation using [jsonschema](https://www.npmjs.com/package/jsonschema)
 
 ### Import
@@ -281,7 +279,6 @@ import { JsonSchema } from "@bahatron/utils";
 const { Schema } = JsonSchema;
 
 // Type helpers
-import type { JsonSchema } from "@bahatron/utils";
 type MyType = JsonSchema.Static<typeof MySchema>;
 type RawInferred = JsonSchema.InferRawSchema<typeof rawSchema>;
 ```
@@ -292,7 +289,7 @@ type RawInferred = JsonSchema.InferRawSchema<typeof rawSchema>;
 
 ```ts
 Schema.String(); // string
-Schema.String({ nullable: true }); // string | null
+Schema.Nullable(Schema.String()); // string | null
 Schema.String({ enum: ["a", "b"] as const }); // "a" | "b"
 Schema.String({ format: "email" }); // string (validated as email)
 
@@ -300,7 +297,7 @@ Schema.Number(); // number
 Schema.Number({ enum: [1, 2, 3] as const }); // 1 | 2 | 3
 
 Schema.Boolean(); // boolean
-Schema.Boolean({ nullable: true }); // boolean | null
+Schema.Nullable(Schema.Boolean()); // boolean | null
 ```
 
 #### Const
@@ -310,11 +307,18 @@ Schema.Const("active"); // "active"
 Schema.Const(42); // 42
 ```
 
+#### Any
+
+```ts
+Schema.Any(); // any
+Schema.Any({ description: "metadata" }); // any (with description)
+```
+
 #### Array
 
 ```ts
 Schema.Array(Schema.String()); // string[]
-Schema.Array(Schema.Number(), { nullable: true }); // number[] | null
+Schema.Nullable(Schema.Array(Schema.Number())); // number[] | null
 ```
 
 #### Object
@@ -324,7 +328,7 @@ const UserSchema = Schema.Object({
     id: Schema.Number(),
     name: Schema.String(),
     role: Schema.String({ enum: ["admin", "user"] as const }),
-    bio: Schema.String({ nullable: true, optional: true }),
+    bio: Schema.Optional(Schema.Nullable(Schema.String())),
 });
 
 type User = JsonSchema.Static<typeof UserSchema>;
@@ -341,25 +345,27 @@ const BaseSchema = Schema.Object({
     createdAt: Schema.String(),
 });
 
-const UserSchema = Schema.Composite(
+const UserSchema = Schema.Composite([
     BaseSchema,
     Schema.Object({
         name: Schema.String(),
         email: Schema.String(),
     }),
-);
+]);
 // { id: number; createdAt: string; name: string; email: string }
 ```
 
 #### AnyOf / OneOf
 
 ```ts
-const StatusSchema = Schema.AnyOf(Schema.String(), Schema.Number());
+const StatusSchema = Schema.AnyOf([Schema.String(), Schema.Number()]);
 // string | number
 
 const EventSchema = Schema.OneOf(
-    Schema.Object({ type: Schema.Const("click"), x: Schema.Number() }),
-    Schema.Object({ type: Schema.Const("key"), code: Schema.String() }),
+    [
+        Schema.Object({ type: Schema.Const("click"), x: Schema.Number() }),
+        Schema.Object({ type: Schema.Const("key"), code: Schema.String() }),
+    ],
     { discriminator: { propertyName: "type" } },
 );
 // { type: "click"; x: number } | { type: "key"; code: string }
@@ -370,23 +376,59 @@ const EventSchema = Schema.OneOf(
 Define self-referencing schemas using `$ref`. The schema is automatically registered for validation.
 
 ```ts
-const TreeSchema = Schema.Recursive("TreeNode", (self) =>
+type TreeNode = { value: string; children: TreeNode[] };
+
+const TreeSchema = Schema.Recursive<TreeNode>("TreeNode", (self) =>
     Schema.Object({
         value: Schema.String(),
-        children: Schema.Array(self, { nullable: true }),
+        children: Schema.Array(self),
     }),
 );
-// { value: string; children: TreeNode[] | null }
+// { value: string; children: TreeNode[] }
+```
+
+#### Record
+
+```ts
+Schema.Record(Schema.String(), Schema.Number()); // Record<string, number>
+Schema.Record(Schema.Number(), Schema.String()); // Record<number, string>
+```
+
+#### Nullable / Optional / Required
+
+```ts
+Schema.Nullable(Schema.String()); // string | null
+Schema.Optional(Schema.String()); // string (optional in parent object)
+Schema.Required(Schema.Nullable(Schema.String())); // string (strips null + optional)
+```
+
+#### Pick / Omit
+
+```ts
+const User = Schema.Object({
+    name: Schema.String(),
+    age: Schema.Number(),
+    email: Schema.String(),
+});
+
+Schema.Pick(User, ["name", "email"]); // { name: string; email: string }
+Schema.Omit(User, ["email"]); // { name: string; age: number }
 ```
 
 #### From
 
-Infer a typed schema from an untyped source (e.g. a JSON import or a non-`as const` object). The type is provided via the `const` generic parameter.
+Infer a typed schema from a plain object (e.g. a JSON import). No `as const` needed — the type is inferred via a `const` generic parameter.
 
 ```ts
-const raw = { type: "string" } as const;
-const schema = Schema.From<string>(raw);
-// TSchema<string> backed by { type: "string" }
+const schema = Schema.From({
+    type: "object",
+    properties: {
+        name: { type: "string" },
+        age: { type: "number" },
+    },
+    required: ["name", "age"],
+});
+type T = JsonSchema.Static<typeof schema>; // { name: string; age: number }
 ```
 
 ### Raw Schema Inference
@@ -413,7 +455,7 @@ Supported keywords: `type`, `const`, `enum`, `properties`/`required`, `items`, `
 
 ### Validation
 
-The `validate` function returns the typed object if valid, or throws `ValidationFailed` with details.
+`Schema.validate` returns the typed object if valid, or throws `ValidationFailed` with details.
 
 ```ts
 const UserSchema = Schema.Object({
@@ -437,24 +479,33 @@ try {
 
 ### API Reference
 
-**Builders** — all accept an options object with `nullable?`, `optional?`, `$id?`, `$schema?`, `description?`, `title?`:
+**Builders** — accept an options object with `$id?`, `$schema?`, `description?`, `title?`:
 
 - `Schema.Const(value, opts?)` — literal value schema
-- `Schema.String(opts?)` — string schema (supports `enum`, `format`)
-- `Schema.Number(opts?)` — number schema (supports `enum`)
+- `Schema.String(opts?)` — string schema (supports `enum`, `format`, `minLength`, `maxLength`, `pattern`)
+- `Schema.Number(opts?)` — number schema (supports `enum`, `minimum`, `maximum`, `multipleOf`)
 - `Schema.Boolean(opts?)` — boolean schema
-- `Schema.Array(items, opts?)` — array schema
+- `Schema.Any(opts?)` — any value (empty schema)
+- `Schema.Array(items, opts?)` — array schema (supports `minItems`, `maxItems`, `uniqueItems`)
 - `Schema.Object(properties, opts?)` — object schema (supports `additionalProperties`)
-- `Schema.Composite(...schemas)` — merge multiple object schemas
-- `Schema.AnyOf(...schemas, opts?)` — union (any match)
-- `Schema.OneOf(...schemas, opts?)` — union (exactly one match, supports `discriminator`)
+- `Schema.Record(keySchema, valueSchema)` — record / dictionary schema
+- `Schema.Composite(schemas[], opts?)` — merge multiple object schemas
+- `Schema.AnyOf(schemas[], opts?)` — union (any match)
+- `Schema.OneOf(schemas[], opts?)` — union (exactly one match, supports `discriminator`)
 - `Schema.Recursive(id, builder)` — self-referencing schema via `$ref`
-- `Schema.From<T>(raw)` — wrap a raw schema with a type parameter
+- `Schema.From(raw)` — infer typed schema from a plain object
+
+**Wrappers:**
+
+- `Schema.Nullable(schema)` — make schema accept `null`
+- `Schema.Optional(schema)` — make property optional in parent object
+- `Schema.Required(schema)` — strip `null` and optional from schema
+- `Schema.Pick(objectSchema, keys[])` — keep only selected keys
+- `Schema.Omit(objectSchema, keys[])` — remove selected keys
 
 **Validation:**
 
 - `Schema.validate(data, schema)` — validate and return typed data, or throw `ValidationFailed`
-- `Schema.addSchema(schema, uri)` — register a schema for `$ref` resolution
 
 ---
 
