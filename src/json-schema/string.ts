@@ -25,8 +25,10 @@ type StringOptions = BaseOpts & {
  * Schema.Optional(Schema.String())                      // marks as optional in parent object
  * ```
  */
-export function String<const Opts extends StringOptions>(
+function _String<const Opts extends StringOptions>(
     options?: Opts,
 ): TSchema<ResolveEnum<string, Opts extends undefined ? {} : Opts>> {
     return buildPrimitiveSchema("string", options);
 }
+
+export { _String as String };

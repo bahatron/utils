@@ -27,12 +27,23 @@ let numberWithOptions = Schema.Number({
     description: "percentage in steps of 5",
 });
 
+let integerType = Schema.Number({ integer: true });
+type IintegerType = Static<typeof integerType>; // number (JSON Schema type: "integer")
+
+let integerWithOptions = Schema.Number({
+    integer: true,
+    minimum: 1,
+    maximum: 10,
+});
+
 // Output:
 //   numberType             → { type: "number" }
 //   nullableNumberType     → { type: ["number", "null"] }
 //   enumNumberType         → { type: "number", enum: [1, 2, 3] }
 //   nullableEnumNumberType → { type: ["number", "null"], enum: [10, 20, 30] }
 //   numberWithOptions      → { minimum: 0, maximum: 100, multipleOf: 5, description: "percentage in steps of 5", type: "number" }
+//   integerType            → { type: "integer" }
+//   integerWithOptions     → { type: "integer", minimum: 1, maximum: 10 }
 logger.info(
     {
         numberType,
@@ -40,6 +51,8 @@ logger.info(
         enumNumberType,
         nullableEnumNumberType,
         numberWithOptions,
+        integerType,
+        integerWithOptions,
     },
     "=== Number schemas ===",
 );

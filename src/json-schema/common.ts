@@ -1,4 +1,5 @@
 import { type Schema as JsonSchema } from "jsonschema";
+import { PreconditionFailed } from "../error";
 
 // ─── Branded Schema Type ─────────────────────────────────────────────────────
 
@@ -149,7 +150,9 @@ export function assertObjectSchema(schema: any, method: string): void {
         type === "object" ||
         (globalThis.Array.isArray(type) && type.includes("object"));
     if (!isObject) {
-        throw new Error(`Schema.${method}: schema must be of type 'object'`);
+        throw PreconditionFailed(
+            `Schema.${method}: schema must be of type 'object'`,
+        );
     }
 }
 

@@ -17,6 +17,8 @@ type BooleanOptions = BaseOpts & {
  * Schema.Boolean({ default: false, description: "active flag" })
  * ```
  */
-export function Boolean(options?: BooleanOptions): TSchema<boolean> {
+function _Boolean(options?: BooleanOptions): TSchema<boolean> {
     return buildPrimitiveSchema("boolean", options);
 }
+
+export { _Boolean as Boolean };

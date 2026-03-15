@@ -30,6 +30,17 @@ describe("JsonSchema", () => {
             expect(schema).toEqual({ type: "number", minimum: 0 });
         });
 
+        it("Number({ integer: true }) produces integer type", () => {
+            let schema = Schema.Number({ integer: true });
+            expect(schema).toEqual({ type: "integer" });
+        });
+
+        it("Number({ integer: true }) strips integer from output", () => {
+            let schema = Schema.Number({ integer: true, minimum: 0 });
+            expect(schema).toEqual({ type: "integer", minimum: 0 });
+            expect((schema as any).integer).toBeUndefined();
+        });
+
         it("Boolean() produces correct schema", () => {
             let schema = Schema.Boolean();
             expect(schema).toEqual({ type: "boolean" });
@@ -284,6 +295,90 @@ describe("JsonSchema", () => {
             expect(() =>
                 Schema.validate({ a: "not a number" }, schema),
             ).toThrow();
+        });
+
+        it("Record with String({ pattern }) uses custom pattern", () => {
+            let schema = Schema.Record(
+                Schema.String({ pattern: "^[a-z]+$" }),
+                Schema.Number(),
+            );
+            expect(schema).toEqual({
+                type: "object",
+                patternProperties: { "^[a-z]+$": { type: "number" } },
+            });
+        });
+
+        it("Record with String({ format: 'email' }) uses email pattern", () => {
+            let schema = Schema.Record(
+                Schema.String({ format: "email" }),
+                Schema.Any(),
+            );
+            expect(schema).toEqual({
+                type: "object",
+                patternProperties: {
+                    "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$": {},
+                },
+            });
+        });
+
+        it("Record with String({ format: 'uuid' }) uses uuid pattern", () => {
+            let schema = Schema.Record(
+                Schema.String({ format: "uuid" }),
+                Schema.Boolean(),
+            );
+            expect(schema).toEqual({
+                type: "object",
+                patternProperties: {
+                    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$":
+                        { type: "boolean" },
+                },
+            });
+        });
+
+        it("Record with String({ format: 'date-time' }) uses date-time pattern", () => {
+            let schema = Schema.Record(
+                Schema.String({ format: "date-time" }),
+                Schema.String(),
+            );
+            let keys = globalThis.Object.keys(
+                (schema as any).patternProperties,
+            );
+            expect(keys[0]).toMatch(/^\^\\d/);
+        });
+
+        it("Record with String({ unknown format }) falls back to default", () => {
+            let schema = Schema.Record(
+                Schema.String({ format: "custom-thing" }),
+                Schema.Number(),
+            );
+            expect(schema).toEqual({
+                type: "object",
+                patternProperties: { "^.*$": { type: "number" } },
+            });
+        });
+
+        it("Record with String({ pattern }) takes priority over format", () => {
+            let schema = Schema.Record(
+                Schema.String({ pattern: "^abc$", format: "email" }),
+                Schema.Number(),
+            );
+            expect(schema).toEqual({
+                type: "object",
+                patternProperties: { "^abc$": { type: "number" } },
+            });
+        });
+
+        it("Record with Number({ integer: true }) uses integer pattern", () => {
+            let schema = Schema.Record(
+                Schema.Number({ integer: true }),
+                Schema.String(),
+            );
+            expect(schema).toEqual({
+                type: "object",
+                patternProperties: {
+                    "^-?(?:0|[1-9][0-9]*)$": { type: "string" },
+                },
+            });
         });
     });
 

@@ -295,6 +295,8 @@ Schema.String({ format: "email" }); // string (validated as email)
 
 Schema.Number(); // number
 Schema.Number({ enum: [1, 2, 3] as const }); // 1 | 2 | 3
+Schema.Number({ integer: true }); // integer (no decimals)
+Schema.Number({ integer: true, minimum: 1 }); // integer with constraints
 
 Schema.Boolean(); // boolean
 Schema.Nullable(Schema.Boolean()); // boolean | null
@@ -392,6 +394,15 @@ const TreeSchema = Schema.Recursive<TreeNode>("TreeNode", (self) =>
 ```ts
 Schema.Record(Schema.String(), Schema.Number()); // Record<string, number>
 Schema.Record(Schema.Number(), Schema.String()); // Record<number, string>
+
+// Key with pattern — uses the regex directly as the patternProperties key
+Schema.Record(Schema.String({ pattern: "^[a-z]+$" }), Schema.Any());
+
+// Key with format — maps known formats (email, uuid, date-time, etc.) to regex
+Schema.Record(Schema.String({ format: "email" }), Schema.Any());
+
+// Integer key — uses integer-only regex (no decimals)
+Schema.Record(Schema.Number({ integer: true }), Schema.String());
 ```
 
 #### Nullable / Optional / Required

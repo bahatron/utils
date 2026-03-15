@@ -1,3 +1,4 @@
+import { PreconditionFailed } from "../error";
 import type { TSchema, Static, Simplify, BaseOpts } from "./common";
 
 type ObjectOptions = BaseOpts & {
@@ -53,7 +54,7 @@ export function Composite<const T extends readonly TSchema<any>[]>(
             (globalThis.Array.isArray(type) && type.includes("object"));
 
         if (!isObject) {
-            throw new Error(
+            throw PreconditionFailed(
                 "Schema.Composite: all schemas must be of type 'object'",
             );
         }

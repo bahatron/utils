@@ -20,9 +20,8 @@ type ArrayOptions = BaseOpts & {
  * Schema.Array(Schema.String(), { minItems: 1, uniqueItems: true })
  * ```
  */
-export function Array<T>(
-    items: TSchema<T>,
-    options?: ArrayOptions,
-): TSchema<T[]> {
+function _Array<T>(items: TSchema<T>, options?: ArrayOptions): TSchema<T[]> {
     return { ...(options ?? {}), type: "array", items } as any;
 }
+
+export { _Array as Array };

@@ -44,7 +44,7 @@ type ResolveObjectProperties<P extends PropertySchemas> = {
  * // { id: number } | null
  * ```
  */
-export function Object<P extends PropertySchemas>(
+function _Object<P extends PropertySchemas>(
     properties: P,
     options?: ObjectOptions,
 ): TSchema<Simplify<ResolveObjectProperties<P>>> {
@@ -60,3 +60,5 @@ export function Object<P extends PropertySchemas>(
         ...(additionalProperties !== undefined ? { additionalProperties } : {}),
     } as any;
 }
+
+export { _Object as Object };

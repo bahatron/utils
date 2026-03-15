@@ -2,6 +2,7 @@ import type { TSchema, BaseOpts, ResolveEnum } from "./common";
 import { buildPrimitiveSchema } from "./common";
 
 type NumberOptions = BaseOpts & {
+    integer?: boolean;
     enum?: readonly number[];
     minimum?: number;
     maximum?: number;
@@ -23,11 +24,15 @@ type NumberOptions = BaseOpts & {
  * Schema.Nullable(Schema.Number())                      // number | null
  * Schema.Number({ enum: [1, 2, 3] as const })           // 1 | 2 | 3
  * Schema.Number({ minimum: 0, maximum: 100 })           // number (validated)
+ * Schema.Number({ integer: true })                      // integer type
  * Schema.Optional(Schema.Number())                      // marks as optional in parent object
  * ```
  */
-export function Number<const Opts extends NumberOptions>(
+function _Number<const Opts extends NumberOptions>(
     options?: Opts,
 ): TSchema<ResolveEnum<number, Opts extends undefined ? {} : Opts>> {
-    return buildPrimitiveSchema("number", options);
+    let { integer, ...rest } = options ?? ({} as any);
+    return buildPrimitiveSchema(integer ? "integer" : "number", rest);
 }
+
+export { _Number as Number };
