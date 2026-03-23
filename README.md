@@ -339,7 +339,7 @@ type User = JsonSchema.Static<typeof UserSchema>;
 
 #### Composite
 
-Merges multiple object schemas into one. Handles nullable source schemas.
+Merges multiple object schemas into one. Handles nullable source schemas. Also accepts `Schema.OneOf` / `Schema.AnyOf` unions (whose members are all objects) — these are preserved and combined via JSON Schema `allOf`.
 
 ```ts
 const BaseSchema = Schema.Object({
@@ -355,6 +355,16 @@ const UserSchema = Schema.Composite([
     }),
 ]);
 // { id: number; createdAt: string; name: string; email: string }
+
+// Composite with OneOf — union branches are kept in allOf
+const ByPostcode = Schema.Object({ postcode: Schema.String() });
+const ByLatLon = Schema.Object({ lat: Schema.Number(), lon: Schema.Number() });
+
+const SearchSchema = Schema.Composite([
+    Schema.Object({ bedrooms: Schema.Number() }),
+    Schema.OneOf([ByPostcode, ByLatLon]),
+]);
+// { bedrooms: number } & ({ postcode: string } | { lat: number; lon: number })
 ```
 
 #### AnyOf / OneOf
@@ -500,7 +510,7 @@ try {
 - `Schema.Array(items, opts?)` — array schema (supports `minItems`, `maxItems`, `uniqueItems`)
 - `Schema.Object(properties, opts?)` — object schema (supports `additionalProperties`)
 - `Schema.Record(keySchema, valueSchema)` — record / dictionary schema
-- `Schema.Composite(schemas[], opts?)` — merge multiple object schemas
+- `Schema.Composite(schemas[], opts?)` — merge multiple object schemas (also accepts `OneOf`/`AnyOf` unions of objects)
 - `Schema.AnyOf(schemas[], opts?)` — union (any match)
 - `Schema.OneOf(schemas[], opts?)` — union (exactly one match, supports `discriminator`)
 - `Schema.Recursive(id, builder)` — self-referencing schema via `$ref`

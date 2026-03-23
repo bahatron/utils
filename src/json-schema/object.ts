@@ -50,12 +50,19 @@ function _Object<P extends PropertySchemas>(
 ): TSchema<Simplify<ResolveObjectProperties<P>>> {
     let { additionalProperties, ...rest } = options ?? ({} as any);
     let allKeys = globalThis.Object.keys(properties);
-    let required = allKeys.filter((k) => !(properties[k] as any)?._optional);
+    let required: string[] = [];
+    let cleanedProperties: any = {};
+
+    for (let key of allKeys) {
+        let { _optional, ...prop } = (properties as any)[key];
+        cleanedProperties[key] = prop;
+        if (!_optional) required.push(key);
+    }
 
     return {
         ...rest,
         type: "object",
-        properties,
+        properties: cleanedProperties,
         ...(required.length ? { required } : {}),
         ...(additionalProperties !== undefined ? { additionalProperties } : {}),
     } as any;

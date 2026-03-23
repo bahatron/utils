@@ -142,7 +142,7 @@ describe("JsonSchema", () => {
                 type: "object",
                 properties: {
                     name: { type: "string" },
-                    nickname: { type: "string", _optional: true },
+                    nickname: { type: "string" },
                 },
                 required: ["name"],
             });
@@ -410,7 +410,7 @@ describe("JsonSchema", () => {
                 type: "object",
                 properties: {
                     name: { type: "string" },
-                    bio: { type: "string", _optional: true },
+                    bio: { type: "string" },
                 },
                 required: ["name"],
             });
@@ -479,7 +479,7 @@ describe("JsonSchema", () => {
                 type: "object",
                 properties: {
                     name: { type: "string" },
-                    bio: { type: "string", _optional: true },
+                    bio: { type: "string" },
                 },
                 required: ["name"],
             });

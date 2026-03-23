@@ -164,11 +164,12 @@ export function pickFromSchema(
     assertObjectSchema(schema, method);
     let props = schema.properties ?? {};
     let required: string[] = schema.required ?? [];
+    let keySet = new globalThis.Set(keys);
     let picked: any = {};
     for (let key of keys) {
         picked[key] = props[key];
     }
-    let newRequired = required.filter((k: string) => keys.includes(k));
+    let newRequired = required.filter((k: string) => keySet.has(k));
     let { properties: _, required: __, ...rest } = schema;
     return {
         ...rest,

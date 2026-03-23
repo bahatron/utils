@@ -4,7 +4,7 @@ import { Formatters } from "../../src/logger";
 
 let logger = Logger.Logger({ formatter: Formatters.Pretty });
 
-// ─── Composite ───────────────────────────────────────────────────────────────
+// ─── Composite (object-only) ─────────────────────────────────────────────────
 
 let userSchema = Schema.Object({
     name: Schema.String(),
@@ -20,8 +20,9 @@ let profileSchema = Schema.Object({
 let fullUser = Schema.Composite([userSchema, profileSchema]);
 type IFullUser = Static<typeof fullUser>;
 // { name: string; email: string; bio?: string; avatar: string }
+logger.info({ fullUser }, "basic merge");
 
-// nullable schema — its keys become optional in the composite
+// nullable schema — its keys become nullable in the composite
 let addressSchema = Schema.Nullable(
     Schema.Object({
         street: Schema.String(),
@@ -32,6 +33,7 @@ let addressSchema = Schema.Nullable(
 let userWithAddress = Schema.Composite([userSchema, addressSchema]);
 type IUserWithAddress = Static<typeof userWithAddress>;
 // { name: string; email: string; street: string | null; city: string | null }
+logger.info({ userWithAddress }, "nullable source schema");
 
 // composite itself can be nullable/optional
 let nullableComposite = Schema.Nullable(
@@ -39,12 +41,4 @@ let nullableComposite = Schema.Nullable(
 );
 type INullableComposite = Static<typeof nullableComposite>;
 // { name: string; email: string; bio?: string; avatar: string } | null
-
-// Output:
-//   fullUser         → { type: "object", properties: { name: { type: "string" }, email: { format: "email", type: "string" }, bio: { type: "string", _optional: true }, avatar: { type: "string" } }, required: ["name", "email", "avatar"] }
-//   userWithAddress  → { type: "object", properties: { name: "[Reference]", email: "[Reference]", street: { type: ["string", "null"] }, city: { type: ["string", "null"] } }, required: ["name", "email", "street", "city"] }
-//   nullableComposite → { type: ["object", "null"], properties: { name: "[Reference]", email: "[Reference]", bio: "[Reference]", avatar: "[Reference]" }, required: ["name", "email", "avatar"] }
-logger.info(
-    { fullUser, userWithAddress, nullableComposite },
-    "=== Composite schemas ===",
-);
+logger.info({ nullableComposite }, "nullable composite");
