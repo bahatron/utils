@@ -54,7 +54,12 @@ function _Object<P extends PropertySchemas>(
     let cleanedProperties: any = {};
 
     for (let key of allKeys) {
-        let { _optional, ...prop } = (properties as any)[key];
+        let value = (properties as any)[key];
+        if (value == null) {
+            cleanedProperties[key] = value;
+            continue;
+        }
+        let { _optional, ...prop } = value;
         cleanedProperties[key] = prop;
         if (!_optional) required.push(key);
     }

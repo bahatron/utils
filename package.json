@@ -8,8 +8,8 @@
         "test": "vitest run",
         "watch": "npm run build -- --watch",
         "build": "tsc -p tsconfig.build.json",
-        "build:clean": "rm -rf lib && npm run build",
-        "preversion": "npm run build:clean && npm run test",
+        "build:prod": "rm -rf lib && npm run build && vitest run --config vitest.config.lib.mts",
+        "preversion": "npm run build:prod",
         "prepare": "husky"
     },
     "repository": {
