@@ -14,6 +14,7 @@ The only utility library you'll ever need - a comprehensive collection of TypeSc
 - [JsonSchema](#jsonschema)
 - [Observable](#observable)
 - [Error](#error)
+- [Http](#http)
 
 ---
 
@@ -650,6 +651,163 @@ try {
     console.error(err.context); // { userId: 123 }
 }
 ```
+
+---
+
+## Http
+
+Axios-compatible HTTP client built on native `fetch`. Drop-in replacement with the same API — `create`, interceptors, config merging, and error handling all work like axios.
+
+### Features
+
+- Built on native `fetch` — zero HTTP dependencies
+- Axios-compatible API (`create`, callable instances, interceptors)
+- Automatic JSON serialization/parsing
+- `baseURL` + relative URL resolution
+- Query parameter serialization
+- Request/response interceptors with `use`/`eject`/`clear`
+- Configurable status validation
+- Timeout support via `AbortController`
+- `HttpError` with `isAxiosError: true` for compatibility
+
+### Usage
+
+```ts
+import { Http } from "@bahatron/utils";
+
+// Use the default instance directly
+const response = await Http.http({
+    url: "https://api.example.com/users",
+    method: "get",
+});
+response.data; // parsed JSON
+response.status; // 200
+
+// Create a custom instance with defaults
+const client = Http.http.create({
+    baseURL: "https://api.example.com",
+    headers: { Authorization: "Bearer token" },
+    timeout: 5000,
+});
+
+// Make requests — config merges with defaults
+const user = await client({
+    url: "/users/1",
+    method: "get",
+});
+
+// POST with JSON body (auto-serialized, Content-Type set automatically)
+const created = await client({
+    url: "/users",
+    method: "post",
+    data: { name: "Rick", dimension: "C-137" },
+});
+```
+
+### Interceptors
+
+```ts
+import { Http } from "@bahatron/utils";
+
+const client = Http.create({ baseURL: "https://api.example.com" });
+
+// Request interceptor — modify config before sending
+const id = client.interceptors.request.use(
+    (config) => {
+        config.headers = {
+            ...config.headers,
+            Authorization: "Bearer " + getToken(),
+        };
+        return config;
+    },
+    (error) => Promise.reject(error),
+);
+
+// Response interceptor — transform or handle responses
+client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.status === 401) {
+            // handle unauthorized
+        }
+        return Promise.reject(error);
+    },
+);
+
+// Remove an interceptor
+client.interceptors.request.eject(id);
+
+// Remove all interceptors
+client.interceptors.request.clear();
+```
+
+### Error Handling
+
+```ts
+import { Http } from "@bahatron/utils";
+
+const client = Http.create({ baseURL: "https://api.example.com" });
+
+try {
+    await client({ url: "/not-found" });
+} catch (err) {
+    if (err instanceof Http.HttpError) {
+        err.status; // 404
+        err.message; // "Request failed with status code 404"
+        err.response; // { data, status, statusText, headers, config }
+        err.isAxiosError; // true (for compatibility)
+    }
+}
+
+// Accept all status codes (don't throw)
+const response = await client({
+    url: "/not-found",
+    validateStatus: null,
+});
+response.status; // 404
+```
+
+### Request Config
+
+```ts
+interface HttpRequestConfig<D = any> {
+    url?: string; // Request URL
+    method?: string; // HTTP method (default: "get")
+    baseURL?: string; // Prepended to relative URLs
+    headers?: Record<string, string>; // Request headers
+    params?: Record<string, string | number | boolean>; // Query parameters
+    data?: D; // Request body (auto-serialized to JSON)
+    timeout?: number; // Timeout in ms
+    validateStatus?: ((status: number) => boolean) | null; // Custom status validation
+    signal?: AbortSignal; // Abort signal
+}
+```
+
+### Response
+
+```ts
+interface HttpResponse<T = any, D = any> {
+    data: T; // Parsed response body
+    status: number; // HTTP status code
+    statusText: string; // HTTP status text
+    headers: Record<string, string>; // Response headers
+    config: HttpRequestConfig<D>; // Request config used
+}
+```
+
+### API
+
+- `Http.http(config)` — make a request using the default instance
+- `Http.http.create(defaults?)` — create a new instance with defaults
+- `Http.create(defaults?)` — same as above (standalone export)
+- `instance(config)` — make a request
+- `instance.defaults` — instance default config
+- `instance.interceptors.request.use(onFulfilled?, onRejected?)` — add request interceptor, returns ID
+- `instance.interceptors.response.use(onFulfilled?, onRejected?)` — add response interceptor, returns ID
+- `instance.interceptors.request.eject(id)` — remove request interceptor
+- `instance.interceptors.response.eject(id)` — remove response interceptor
+- `instance.interceptors.request.clear()` — remove all request interceptors
+- `instance.interceptors.response.clear()` — remove all response interceptors
 
 ---
 

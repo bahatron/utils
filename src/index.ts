@@ -3,3 +3,4 @@ export * as Observable from "./observable";
 export * as Error from "./error";
 export * as Helpers from "./helpers";
 export * as JsonSchema from "./json-schema";
+export * as Http from "./http";
