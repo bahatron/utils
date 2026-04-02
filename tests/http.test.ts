@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
-import axios, { AxiosError } from "axios";
 import {
     create,
     HttpError,
@@ -119,29 +118,18 @@ describe("Http", () => {
     describe("convenience methods", () => {
         it("get", async () => {
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
+            const response = await client.get("/echo");
 
-            const [ours, theirs] = await Promise.all([
-                client.get("/echo"),
-                axiosClient.get("/echo"),
-            ]);
-
-            expect(ours.data.method).toBe(theirs.data.method);
-            expect(ours.data.method).toBe("GET");
+            expect(response.data.method).toBe("GET");
         });
 
         it("post", async () => {
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
             const data = { name: "Rick" };
+            const response = await client.post("/echo", data);
 
-            const [ours, theirs] = await Promise.all([
-                client.post("/echo", data),
-                axiosClient.post("/echo", data),
-            ]);
-
-            expect(ours.data.method).toBe("POST");
-            expect(ours.data.body).toEqual(theirs.data.body);
+            expect(response.data.method).toBe("POST");
+            expect(response.data.body).toEqual(data);
         });
 
         it("put", async () => {
@@ -183,21 +171,16 @@ describe("Http", () => {
     });
 
     describe("GET requests", () => {
-        it("matches axios response shape", async () => {
+        it("returns expected response shape", async () => {
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
+            const response = await client({ url: "/echo", method: "get" });
 
-            const [ours, theirs] = await Promise.all([
-                client({ url: "/echo", method: "get" }),
-                axiosClient({ url: "/echo", method: "get" }),
-            ]);
-
-            expect(ours.status).toBe(theirs.status);
-            expect(ours.statusText).toBe(theirs.statusText);
-            expect(ours.data.method).toBe(theirs.data.method);
-            expect(ours.data.url).toBe(theirs.data.url);
-            expect(ours).toHaveProperty("headers");
-            expect(ours).toHaveProperty("config");
+            expect(response.status).toBe(200);
+            expect(response.statusText).toBe("OK");
+            expect(response.data.method).toBe("GET");
+            expect(response.data.url).toBe("/echo");
+            expect(response).toHaveProperty("headers");
+            expect(response).toHaveProperty("config");
         });
 
         it("defaults method to GET", async () => {
@@ -209,18 +192,13 @@ describe("Http", () => {
     });
 
     describe("POST with JSON body", () => {
-        it("sends JSON data like axios", async () => {
+        it("sends JSON data", async () => {
             const payload = { name: "Rick", dimension: "C-137" };
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
+            const response = await client({ url: "/echo", method: "post", data: payload });
 
-            const [ours, theirs] = await Promise.all([
-                client({ url: "/echo", method: "post", data: payload }),
-                axiosClient({ url: "/echo", method: "post", data: payload }),
-            ]);
-
-            expect(ours.data.body).toEqual(theirs.data.body);
-            expect(ours.data.headers["content-type"]).toContain(
+            expect(response.data.body).toEqual(payload);
+            expect(response.data.headers["content-type"]).toContain(
                 "application/json",
             );
         });
@@ -239,17 +217,12 @@ describe("Http", () => {
     });
 
     describe("query params", () => {
-        it("serializes params like axios", async () => {
+        it("serializes params", async () => {
             const params = { foo: "bar", baz: 123 };
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
+            const response = await client({ url: "/echo", method: "get", params });
 
-            const [ours, theirs] = await Promise.all([
-                client({ url: "/echo", method: "get", params }),
-                axiosClient({ url: "/echo", method: "get", params }),
-            ]);
-
-            expect(ours.data.url).toBe(theirs.data.url);
+            expect(response.data.url).toBe("/echo?foo=bar&baz=123");
         });
 
         it("skips null/undefined param values", async () => {
@@ -329,17 +302,13 @@ describe("Http", () => {
     });
 
     describe("error handling", () => {
-        it("throws on non-2xx status like axios", async () => {
+        it("throws on non-2xx status", async () => {
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
+            const err = await client({ url: "/status/404" }).catch((e) => e) as HttpError;
 
-            const ourErr = await client({ url: "/status/404" }).catch((e) => e) as HttpError;
-            const axiosErr = await axiosClient({ url: "/status/404" }).catch((e) => e) as AxiosError;
-
-            expect(ourErr).toBeInstanceOf(HttpError);
-            expect(axiosErr).toBeInstanceOf(AxiosError);
-            expect(ourErr.status).toBe(axiosErr.response!.status);
-            expect(ourErr.response!.data).toEqual(axiosErr.response!.data);
+            expect(err).toBeInstanceOf(HttpError);
+            expect(err.status).toBe(404);
+            expect(err.response!.data).toEqual({ status: 404 });
         });
 
         it("includes response in error", async () => {
@@ -357,14 +326,11 @@ describe("Http", () => {
             }
         });
 
-        it("error message matches axios format", async () => {
+        it("error message includes status code", async () => {
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
+            const err = await client({ url: "/status/400" }).catch((e) => e) as HttpError;
 
-            const ourErr = await client({ url: "/status/400" }).catch((e) => e) as HttpError;
-            const axiosErr = await axiosClient({ url: "/status/400" }).catch((e) => e) as AxiosError;
-
-            expect(ourErr.message).toBe(axiosErr.message);
+            expect(err.message).toBe("Request failed with status code 400");
         });
     });
 
@@ -404,20 +370,12 @@ describe("Http", () => {
     });
 
     describe("auth", () => {
-        it("sends basic auth header like axios", async () => {
+        it("sends basic auth header", async () => {
             const client = create({ baseURL });
-            const axiosClient = axios.create({ baseURL });
             const auth = { username: "rick", password: "c137" };
+            const response = await client({ url: "/echo", auth });
 
-            const [ours, theirs] = await Promise.all([
-                client({ url: "/echo", auth }),
-                axiosClient({ url: "/echo", auth }),
-            ]);
-
-            expect(ours.data.headers["authorization"]).toBe(
-                theirs.data.headers["authorization"],
-            );
-            expect(ours.data.headers["authorization"]).toBe(
+            expect(response.data.headers["authorization"]).toBe(
                 `Basic ${btoa("rick:c137")}`,
             );
         });
@@ -683,9 +641,8 @@ describe("Http", () => {
 
     describe("interceptors", () => {
         describe("request interceptors", () => {
-            it("transforms config before request like axios", async () => {
+            it("transforms config before request", async () => {
                 const client = create({ baseURL });
-                const axiosClient = axios.create({ baseURL });
 
                 client.interceptors.request.use((config) => ({
                     ...config,
@@ -695,20 +652,8 @@ describe("Http", () => {
                     },
                 }));
 
-                axiosClient.interceptors.request.use((config) => {
-                    config.headers["X-Intercepted"] = "true";
-                    return config;
-                });
-
-                const [ours, theirs] = await Promise.all([
-                    client({ url: "/echo" }),
-                    axiosClient({ url: "/echo" }),
-                ]);
-
-                expect(ours.data.headers["x-intercepted"]).toBe("true");
-                expect(ours.data.headers["x-intercepted"]).toBe(
-                    theirs.data.headers["x-intercepted"],
-                );
+                const response = await client({ url: "/echo" });
+                expect(response.data.headers["x-intercepted"]).toBe("true");
             });
 
             it("chains multiple request interceptors in order", async () => {
@@ -781,27 +726,16 @@ describe("Http", () => {
         });
 
         describe("response interceptors", () => {
-            it("transforms response like axios", async () => {
+            it("transforms response", async () => {
                 const client = create({ baseURL });
-                const axiosClient = axios.create({ baseURL });
 
                 client.interceptors.response.use((response) => ({
                     ...response,
                     data: { ...response.data, intercepted: true },
                 }));
 
-                axiosClient.interceptors.response.use((response) => {
-                    response.data.intercepted = true;
-                    return response;
-                });
-
-                const [ours, theirs] = await Promise.all([
-                    client({ url: "/echo" }),
-                    axiosClient({ url: "/echo" }),
-                ]);
-
-                expect(ours.data.intercepted).toBe(true);
-                expect(ours.data.intercepted).toBe(theirs.data.intercepted);
+                const response = await client({ url: "/echo" });
+                expect(response.data.intercepted).toBe(true);
             });
 
             it("rejected handler catches http errors", async () => {
@@ -848,7 +782,7 @@ describe("Http", () => {
         });
 
         describe("eject", () => {
-            it("removes interceptor by id like axios", async () => {
+            it("removes interceptor by id", async () => {
                 const client = create({ baseURL });
 
                 const id = client.interceptors.request.use((config) => ({
