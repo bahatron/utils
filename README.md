@@ -1,5 +1,7 @@
 # @bahatron/utils
 
+> **This project has moved to [`@pimasi/utils`](https://github.com/pimasi/utils.git).** This repository is no longer maintained.
+
 ```bash
 npm install @bahatron/utils
 ```

@@ -2,8 +2,32 @@
     "name": "@bahatron/utils",
     "version": "5.1.3",
     "description": "The only utility library you'll ever need",
-    "main": "lib/index.js",
-    "types": "lib/index.d.ts",
+    "exports": {
+        "./lib/error": {
+            "types": "./lib/error/index.d.ts",
+            "default": "./lib/error/index.js"
+        },
+        "./lib/helpers": {
+            "types": "./lib/helpers/index.d.ts",
+            "default": "./lib/helpers/index.js"
+        },
+        "./lib/http": {
+            "types": "./lib/http/index.d.ts",
+            "default": "./lib/http/index.js"
+        },
+        "./lib/json-schema": {
+            "types": "./lib/json-schema/index.d.ts",
+            "default": "./lib/json-schema/index.js"
+        },
+        "./lib/logger": {
+            "types": "./lib/logger/index.d.ts",
+            "default": "./lib/logger/index.js"
+        },
+        "./lib/observable": {
+            "types": "./lib/observable/index.d.ts",
+            "default": "./lib/observable/index.js"
+        }
+    },
     "scripts": {
         "test": "vitest run",
         "watch": "npm run build -- --watch",
